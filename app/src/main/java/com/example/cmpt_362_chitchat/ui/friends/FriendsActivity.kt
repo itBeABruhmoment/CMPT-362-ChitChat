@@ -17,8 +17,6 @@ class FriendsActivity : AppCompatActivity(){
     private lateinit var manageFriendsFragment: ManageFriendsFragment
     private lateinit var viewFriendRequestsFragment: ViewFriendRequestsFragment
     private lateinit var tabFragments: ArrayList<Fragment>
-    private lateinit var friendsActivityStateAdapter: FriendsActivityStateAdapter
-    private lateinit var tabConfigurationStrategy: TabLayoutMediator.TabConfigurationStrategy
     private val tabNames: Array<String> = arrayOf("Friends", "Requests")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,10 +28,10 @@ class FriendsActivity : AppCompatActivity(){
 
         initFragments()
 
-        friendsActivityStateAdapter = FriendsActivityStateAdapter(this)
+        val friendsActivityStateAdapter = FriendsActivityStateAdapter(this)
         friendsActivityStateAdapter.fragments = tabFragments
         viewPager.adapter = friendsActivityStateAdapter
-        tabConfigurationStrategy = TabLayoutMediator.TabConfigurationStrategy { tab: TabLayout.Tab, position: Int ->
+        val tabConfigurationStrategy = TabLayoutMediator.TabConfigurationStrategy { tab: TabLayout.Tab, position: Int ->
             tab.text = tabNames[position] }
         val tabLayoutMediator = TabLayoutMediator(tabs, viewPager, tabConfigurationStrategy)
         tabLayoutMediator.attach()
