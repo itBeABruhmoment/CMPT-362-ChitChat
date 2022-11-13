@@ -1,9 +1,12 @@
 package com.example.cmpt_362_chitchat.ui.profile
 
+import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cmpt_362_chitchat.R
+import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var profileItems: ListView
@@ -37,5 +40,14 @@ class ProfileActivity : AppCompatActivity() {
             newDialog.arguments = bundle
             newDialog.show(supportFragmentManager, "standard string")
         }
+    }
+
+    fun changePicture(view: View) {
+        println("DEBUG: change picture")
+    }
+
+    fun startFriendActivity(view: View) {
+        val intent = Intent(this, FriendsActivity::class. java)
+        startActivity(intent)
     }
 }
