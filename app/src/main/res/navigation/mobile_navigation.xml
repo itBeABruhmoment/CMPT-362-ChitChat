@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_private_chatrooms">
+
+    <fragment
+        android:id="@+id/navigation_private_chatrooms"
+        android:name="com.example.cmpt_362_chitchat.ui.home.ui.privateChatroom.PrivateChatroomFragment"
+        android:label="@string/title_private_chatroom"
+        tools:layout="@layout/fragment_private_chatroom" />
+
+    <fragment
+        android:id="@+id/navigation_public_chatrooms"
+        android:name="com.example.cmpt_362_chitchat.ui.home.ui.publicChatroom.PublicChatroomFragment"
+        android:label="@string/title_public_chatroom"
+        tools:layout="@layout/fragment_public_chatroom" />
+
+    <fragment
+        android:id="@+id/navigation_new_chatroom"
+        android:name="com.example.cmpt_362_chitchat.ui.home.ui.newChatroom.NewChatroomFragment"
+        android:label="@string/title_new_chatroom"
+        tools:layout="@layout/fragment_new_chatroom" />
+
+    <activity
+        android:id="@+id/navigation_profile"
+        android:name="com.example.cmpt_362_chitchat.ui.profile.ProfileActivity"
+        android:label="@string/title_profile"
+        tools:layout="@layout/activity_profile" />
+</navigation>

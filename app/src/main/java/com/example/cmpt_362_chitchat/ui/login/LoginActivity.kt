@@ -1,6 +1,7 @@
 package com.example.cmpt_362_chitchat.ui.login
 
 import android.app.Activity
+import android.content.Intent
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
@@ -15,6 +16,7 @@ import android.widget.Toast
 import com.example.cmpt_362_chitchat.databinding.ActivityLoginBinding
 
 import com.example.cmpt_362_chitchat.R
+import com.example.cmpt_362_chitchat.ui.home.HomeActivity
 
 class LoginActivity : AppCompatActivity() {
 
@@ -58,6 +60,9 @@ class LoginActivity : AppCompatActivity() {
             }
             if (loginResult.success != null) {
                 updateUiWithUser(loginResult.success)
+                // TODO: remove later. Using only for testing UI
+                val intent = Intent(this, HomeActivity::class.java)
+                startActivity(intent)
             }
             setResult(Activity.RESULT_OK)
 
