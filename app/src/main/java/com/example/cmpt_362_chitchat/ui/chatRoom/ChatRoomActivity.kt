@@ -14,7 +14,7 @@ import com.google.firebase.database.*
 class ChatRoomActivity: AppCompatActivity() {
 
     val chatRoom: String = "123456"
-    private val sendUID: String = "sample 1"
+    private val sendUID: String = "sample 2"
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var messageBox: EditText
@@ -35,7 +35,7 @@ class ChatRoomActivity: AppCompatActivity() {
         messageBox = findViewById(R.id.message)
         sendButton = findViewById(R.id.send_button)
         messageList = ArrayList()
-        messageAdapter = MessageAdapter(this, messageList)
+        messageAdapter = MessageAdapter(this, messageList, sendUID)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
@@ -65,9 +65,7 @@ class ChatRoomActivity: AppCompatActivity() {
             val message = Message(messageBox.text.toString(), sendUID)
 
             database.child("ChatRooms").child(chatRoom).child("messages").push()
-                .setValue(message).addOnSuccessListener {
-
-                }
+                .setValue(message)
             messageBox.onEditorAction(EditorInfo.IME_ACTION_DONE)
             messageBox.setText("")
         }
