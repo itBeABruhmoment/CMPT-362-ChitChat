@@ -16,7 +16,7 @@ class ViewFriendRequestsFragment : Fragment() {
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_view_friend_requests, container, false)
 
-        val requests: ArrayList<User> = arrayListOf(User("A"), User("B"), User("C"))
+        val requests: ArrayList<User> = arrayListOf(User("Mai"), User("Oliver"), User("Harry"))
         val listView: ListView = view.findViewById(R.id.fragment_view_friend_requests_list)
         val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(requests, requireContext())
         listView.adapter = adapter

@@ -10,21 +10,21 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:id="@+id/fragment_friend_request_item_image" />
+        android:id="@+id/fragment_manage_friends_item_image" />
 
     <TextView
         android:layout_marginTop="10dp"
         android:text="UserName"
-        android:id="@+id/fragment_friend_request_item_name"
+        android:id="@+id/fragment_manage_friends_item_name"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toRightOf="@id/fragment_friend_request_item_image" />
+        app:layout_constraintLeft_toRightOf="@id/fragment_manage_friends_item_image" />
 
     <ImageButton
-        android:id="@+id/fragment_friend_request_item_reject"
-        android:src="@mipmap/ic_cross_foreground"
-        android:scaleType="fitCenter"
+        android:layout_marginTop="5dp"
+        android:id="@+id/fragment_manage_friends_item_etc"
+        android:src="@drawable/ic_kebab_menu_foreground"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginRight="20dp"
@@ -32,12 +32,13 @@
         app:layout_constraintRight_toRightOf="parent"/>
 
     <ImageButton
-        android:id="@+id/fragment_friend_request_item_accept"
-        android:src="@drawable/ic_check_mark_foreground"
+        android:layout_marginTop="5dp"
+        android:id="@+id/fragment_manage_friends_item_message"
+        android:src="@drawable/ic_message_foreground"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_marginRight="20dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/fragment_friend_request_item_reject"/>
+        app:layout_constraintRight_toLeftOf="@id/fragment_manage_friends_item_etc"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
