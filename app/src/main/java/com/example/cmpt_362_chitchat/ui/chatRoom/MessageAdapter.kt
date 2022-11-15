@@ -11,7 +11,7 @@ import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.data.Message
 import com.google.firebase.auth.FirebaseAuth
 
-class MessageAdapter(val context: Context, private val messageList: ArrayList<Message>): RecyclerView.Adapter<ViewHolder>() {
+class MessageAdapter(val context: Context, private val messageList: ArrayList<Message>, private val sender: String): RecyclerView.Adapter<ViewHolder>() {
 
     private val SEND = 0
     private val RECEIVE = 1
@@ -56,7 +56,7 @@ class MessageAdapter(val context: Context, private val messageList: ArrayList<Me
 
     override fun getItemViewType(position: Int): Int {
         val message = messageList[position]
-        return if(FirebaseAuth.getInstance().currentUser?.uid.equals(message.sendID)) {
+        return if(sender == message.sendID) {
             SEND
         } else {
             RECEIVE
