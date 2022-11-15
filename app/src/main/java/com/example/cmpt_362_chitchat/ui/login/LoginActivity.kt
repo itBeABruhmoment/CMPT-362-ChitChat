@@ -34,6 +34,10 @@ class LoginActivity : AppCompatActivity() {
         val login = binding.login
         val loading = binding.loading
 
+        login.setOnClickListener{
+            intent = Intent(this, HomeActivity::class.java)
+            startActivity(intent)
+        }
         loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
             .get(LoginViewModel::class.java)
 
