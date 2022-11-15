@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/camera"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft = "20dp"
+        android:layout_marginTop = "10dp"
+        android:layout_marginBottom = "10dp"
+        android:text = "Open Camera"
+        android:textSize = "24dp"
+        android:onClick="takePhoto"
+        android:gravity="center"
+        />
+
+    <TextView
+        android:id="@+id/gallery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft = "20dp"
+        android:layout_marginTop = "10dp"
+        android:layout_marginBottom = "10dp"
+        android:text = "Select from Gallery"
+        android:textSize = "24dp"
+        android:onClick="selectGallery"
+        android:gravity="center"
+        />
+
+</LinearLayout>
