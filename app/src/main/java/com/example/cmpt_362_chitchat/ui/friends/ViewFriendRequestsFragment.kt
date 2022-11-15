@@ -1,6 +1,5 @@
 package com.example.cmpt_362_chitchat.ui.friends
 
-import android.app.DownloadManager.Request
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,7 +16,7 @@ class ViewFriendRequestsFragment : Fragment() {
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_view_friend_requests, container, false)
 
-        val requests: ArrayList<FriendRequest> = arrayListOf(FriendRequest("A"), FriendRequest("B"), FriendRequest("C"))
+        val requests: ArrayList<User> = arrayListOf(User("A"), User("B"), User("C"))
         val listView: ListView = view.findViewById(R.id.fragment_view_friend_requests_list)
         val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(requests, requireContext())
         listView.adapter = adapter

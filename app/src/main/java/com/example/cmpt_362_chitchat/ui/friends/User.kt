@@ -1,7 +1,7 @@
 package com.example.cmpt_362_chitchat.ui.friends
 
 // temp class for showing some working UI
-class FriendRequest {
+class User {
     var name: String = ""
 
     constructor(name: String) {

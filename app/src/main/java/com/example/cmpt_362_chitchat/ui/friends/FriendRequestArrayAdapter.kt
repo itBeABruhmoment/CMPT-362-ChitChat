@@ -7,7 +7,7 @@ import android.widget.BaseAdapter
 import android.widget.TextView
 import com.example.cmpt_362_chitchat.R
 
-class FriendRequestArrayAdapter(var requests: ArrayList<FriendRequest>, var context: Context) : BaseAdapter(){
+class FriendRequestArrayAdapter(var requests: ArrayList<User>, var context: Context) : BaseAdapter(){
     override fun getCount(): Int {
         return requests.size
     }
