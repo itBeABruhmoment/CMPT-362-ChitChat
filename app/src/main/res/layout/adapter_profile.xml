@@ -28,6 +28,16 @@
                     android:layout_marginLeft="10dp"
                     android:layout_weight="0.1"
                     />
+
+                <ImageView
+                    android:id="@+id/editIcon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_margin="4dp"
+                    android:src="@drawable/ic_baseline_edit_24"
+                    android:onClick="changePicture"
+                    android:contentDescription="icon for changing info">
+                </ImageView>
         </LinearLayout>
 
 </LinearLayout>
