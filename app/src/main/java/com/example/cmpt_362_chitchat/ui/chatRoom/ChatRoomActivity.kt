@@ -13,7 +13,7 @@ import com.google.firebase.database.*
 
 class ChatRoomActivity: AppCompatActivity() {
 
-    val chatRoom: String = "123456"
+    var chatRoom: String = "123456"
     private val sendUID: String = "sample 2"
 
     private lateinit var recyclerView: RecyclerView
@@ -30,6 +30,11 @@ class ChatRoomActivity: AppCompatActivity() {
         setContentView(R.layout.activity_chatroom)
 
         supportActionBar?.title = "Sample chat room"
+
+        val chatroomId = intent.getStringExtra("chatroomId")
+        if (chatroomId != null) {
+            chatRoom = chatroomId
+        }
 
         recyclerView = findViewById(R.id.recycler_view)
         messageBox = findViewById(R.id.message)

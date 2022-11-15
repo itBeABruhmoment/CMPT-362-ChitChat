@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.databinding.FragmentPrivateChatroomBinding
@@ -13,10 +12,6 @@ import com.example.cmpt_362_chitchat.ui.chatRoom.ChatRoomActivity
 import com.example.cmpt_362_chitchat.ui.home.adapters.ChatroomListAdapter
 
 class PrivateChatroomFragment : Fragment() {
-    // TODO: replace later
-    private val tempChatrooms = arrayOf(
-        arrayOf("Private Chatroom 1", "Text preview"),
-        arrayOf("Private Chatroom 2", "Text preview"))
 
     private var _binding: FragmentPrivateChatroomBinding? = null
 
@@ -39,11 +34,19 @@ class PrivateChatroomFragment : Fragment() {
         val chatroomsAdapter = ChatroomListAdapter(
             this.requireContext(),
             android.R.layout.simple_list_item_2,
-            tempChatrooms
+            privateChatroomViewModel.chatrooms.value!!
         )
+
+        privateChatroomViewModel.chatrooms.observe(viewLifecycleOwner) { it ->
+            chatroomsAdapter.replace(it)
+            chatroomsAdapter.notifyDataSetChanged()
+        }
+
         chatroomsList.adapter = chatroomsAdapter
         chatroomsList.setOnItemClickListener { parent, view, position, id ->
-            startActivity(Intent(requireActivity(), ChatRoomActivity::class.java))
+            val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
+            intent.putExtra("chatroomId", privateChatroomViewModel.getChatroom(position))
+            startActivity(intent)
         }
 
         return root
