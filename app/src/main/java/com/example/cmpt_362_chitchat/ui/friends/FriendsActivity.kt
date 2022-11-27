@@ -18,7 +18,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 class FriendsActivity : AppCompatActivity(){
-    private lateinit var viewModel: FriendsActivityViewModel
+    //private lateinit var viewModel: FriendsActivityViewModel
 
     private lateinit var viewPager: ViewPager2
     private lateinit var tabs: TabLayout
@@ -32,6 +32,7 @@ class FriendsActivity : AppCompatActivity(){
         setContentView(R.layout.activity_friends)
 
         // get user or refer user to login screen if null
+        /*
         val tempUser: FirebaseUser? = Firebase.auth.currentUser
         if(tempUser == null) {
             Log.i("FriendsActivity", "user null, going to login page")
@@ -42,6 +43,8 @@ class FriendsActivity : AppCompatActivity(){
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(tempUser)
             viewModel = ViewModelProvider(this, viewModelFactory).get(FriendsActivityViewModel::class.java)
         }
+
+         */
 
         viewPager = findViewById<ViewPager2>(R.id.activity_friends_view_pager)
         tabs = findViewById<TabLayout>(R.id.activity_friends_tabs)

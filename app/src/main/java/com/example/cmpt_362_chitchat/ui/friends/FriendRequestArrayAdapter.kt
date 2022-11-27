@@ -1,13 +1,17 @@
 package com.example.cmpt_362_chitchat.ui.friends
 
+import android.app.Activity
 import android.content.Context
+import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import com.example.cmpt_362_chitchat.R
 
-class FriendRequestArrayAdapter(var requests: ArrayList<User>, var context: Context) : BaseAdapter(){
+
+class FriendRequestArrayAdapter(var requests: ArrayList<User>, var activity: Activity) : BaseAdapter(){
     override fun getCount(): Int {
         return requests.size
     }
@@ -21,8 +25,23 @@ class FriendRequestArrayAdapter(var requests: ArrayList<User>, var context: Cont
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        val view: View = View.inflate(context, R.layout.fragment_friend_request_item, null)
-        view.isClickable = false
+        val view: View = View.inflate(activity, R.layout.fragment_friend_request_item, null)
+        view.isClickable = true
+        view.setOnClickListener {
+            // get dimensions
+            val displayMetrics = DisplayMetrics()
+            activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics)
+            val height: Int = (displayMetrics.heightPixels * 0.8).toInt()
+            val width: Int = (displayMetrics.widthPixels * 0.8).toInt()
+
+            // make dialogue
+            val builder: AlertDialog.Builder = AlertDialog.Builder(activity)
+            builder.setView(R.layout.fragment_view_profile);
+            builder.setTitle("Friend Request");
+            val alertDialog = builder.create();
+            alertDialog.show();
+            alertDialog.getWindow()?.setLayout(width, height);
+        }
         view.findViewById<TextView>(R.id.fragment_friend_request_item_name).text = requests[position].name
         return view
     }

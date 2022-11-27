@@ -21,7 +21,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
 class ViewFriendRequestsFragment : Fragment() {
-    private lateinit var viewModel: FriendsActivityViewModel
+    //private lateinit var viewModel: FriendsActivityViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,11 +30,11 @@ class ViewFriendRequestsFragment : Fragment() {
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_view_friend_requests, container, false)
 
-        viewModel = ViewModelProvider(requireActivity()).get(FriendsActivityViewModel::class.java)
+        //viewModel = ViewModelProvider(requireActivity()).get(FriendsActivityViewModel::class.java)
 
         val requests: ArrayList<User> = arrayListOf(User("Mai"), User("Oliver"), User("Harry"))
         val listView: ListView = view.findViewById(R.id.fragment_view_friend_requests_list)
-        val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(requests, requireContext())
+        val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(requests, requireActivity())
         listView.adapter = adapter
 
         return view
