@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 
-class ChatroomListAdapter(
+class ChatRoomListAdapter(
     val context: Context,
     private var resourceId: Int,
     private var chatrooms: ArrayList<String>): BaseAdapter()  {

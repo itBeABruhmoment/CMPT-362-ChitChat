@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.ui.publicChatroom.PublicChatroomFragment">
+    tools:context=".ui.home.ui.privateChatRoom.PrivateChatRoomFragment">
 
     <ListView
-        android:id="@+id/list_public_chatroom"
+        android:id="@+id/list_private_chatroom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"

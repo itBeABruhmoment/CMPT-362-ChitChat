@@ -1,4 +1,4 @@
-package com.example.cmpt_362_chitchat.ui.home.ui.privateChatroom
+package com.example.cmpt_362_chitchat.ui.home.ui.privateChatRoom
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,13 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.cmpt_362_chitchat.databinding.FragmentPrivateChatroomBinding
+import com.example.cmpt_362_chitchat.databinding.FragmentPrivateChatRoomBinding
 import com.example.cmpt_362_chitchat.ui.chatRoom.ChatRoomActivity
-import com.example.cmpt_362_chitchat.ui.home.adapters.ChatroomListAdapter
+import com.example.cmpt_362_chitchat.ui.home.adapters.ChatRoomListAdapter
 
-class PrivateChatroomFragment : Fragment() {
+class PrivateChatRoomFragment : Fragment() {
 
-    private var _binding: FragmentPrivateChatroomBinding? = null
+    private var _binding: FragmentPrivateChatRoomBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -24,20 +24,20 @@ class PrivateChatroomFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val privateChatroomViewModel =
-            ViewModelProvider(this).get(PrivateChatroomViewModel::class.java)
+        val privateChatRoomViewModel =
+            ViewModelProvider(this).get(PrivateChatRoomViewModel::class.java)
 
-        _binding = FragmentPrivateChatroomBinding.inflate(inflater, container, false)
+        _binding = FragmentPrivateChatRoomBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val chatroomsList = binding.listPrivateChatroom
-        val chatroomsAdapter = ChatroomListAdapter(
+        val chatroomsAdapter = ChatRoomListAdapter(
             this.requireContext(),
             android.R.layout.simple_list_item_2,
-            privateChatroomViewModel.chatrooms.value!!
+            privateChatRoomViewModel.chatrooms.value!!
         )
 
-        privateChatroomViewModel.chatrooms.observe(viewLifecycleOwner) { it ->
+        privateChatRoomViewModel.chatrooms.observe(viewLifecycleOwner) { it ->
             chatroomsAdapter.replace(it)
             chatroomsAdapter.notifyDataSetChanged()
         }
@@ -45,7 +45,8 @@ class PrivateChatroomFragment : Fragment() {
         chatroomsList.adapter = chatroomsAdapter
         chatroomsList.setOnItemClickListener { parent, view, position, id ->
             val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
-            intent.putExtra("chatroomId", privateChatroomViewModel.getChatroom(position))
+            intent.putExtra("chatRoomId", privateChatRoomViewModel.getChatroom(position))
+            intent.putExtra("chatRoomType", "Private")
             startActivity(intent)
         }
 
