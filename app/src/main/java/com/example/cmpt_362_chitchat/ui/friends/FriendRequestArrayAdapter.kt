@@ -32,7 +32,7 @@ class FriendRequestArrayAdapter(var requests: ArrayList<User>, var activity: Act
             val displayMetrics = DisplayMetrics()
             activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics)
             val height: Int = (displayMetrics.heightPixels * 0.8).toInt()
-            val width: Int = (displayMetrics.widthPixels * 0.8).toInt()
+            val width: Int = (displayMetrics.widthPixels * 0.9).toInt()
 
             // make dialogue
             val builder: AlertDialog.Builder = AlertDialog.Builder(activity)
