@@ -25,6 +25,7 @@
         android:id="@+id/fragment_friend_request_item_reject"
         android:src="@mipmap/ic_cross_foreground"
         android:background="@null"
+        android:padding="11dp"
         android:scaleType="fitCenter"
         android:layout_width="40dp"
         android:layout_height="40dp"
