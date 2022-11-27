@@ -7,9 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.databinding.ActivityRegisterBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class RegisterActivity : AppCompatActivity() {
 
+    private lateinit var auth: FirebaseAuth
     private lateinit var binding: ActivityRegisterBinding
     private lateinit var accountManager: AccountManager
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,19 +25,28 @@ class RegisterActivity : AppCompatActivity() {
         val password = binding.registerpassword
         val register = binding.registerBtn
 
+        auth = Firebase.auth
+
         register.setOnClickListener {
             addAccount(this, username.text.toString(), password.text.toString(), "123")
-            getAccount(this)
+           // getAccount(this)
 
         }
 
     }
 
     fun addAccount(context: Context, username: String, password: String, token: String) {
-        accountManager = AccountManager.get(context)
-        var newAccount: Account = Account(username, "com.login.example")
-        accountManager.addAccountExplicitly(newAccount, password, null)
-        accountManager.setAuthToken(newAccount, "com.login.example", token)
+
+        //add confirm pw?
+
+        auth.createUserWithEmailAndPassword(username, password).addOnCompleteListener(this){
+            if (it.isSuccessful){
+                println("DEBUG REGISTER SUCCESS: username: $username, password: $password")
+                finish()
+            }else{
+                println("REGISTER FAIL")
+            }
+        }
     }
 
     fun getAccount(context: Context): Account?{
