@@ -7,21 +7,21 @@
 
     <fragment
         android:id="@+id/navigation_private_chatrooms"
-        android:name="com.example.cmpt_362_chitchat.ui.home.ui.privateChatroom.PrivateChatroomFragment"
+        android:name="com.example.cmpt_362_chitchat.ui.home.ui.privateChatRoom.PrivateChatRoomFragment"
         android:label="@string/title_private_chatroom"
-        tools:layout="@layout/fragment_private_chatroom" />
+        tools:layout="@layout/fragment_private_chat_room" />
 
     <fragment
         android:id="@+id/navigation_public_chatrooms"
-        android:name="com.example.cmpt_362_chitchat.ui.home.ui.publicChatroom.PublicChatroomFragment"
+        android:name="com.example.cmpt_362_chitchat.ui.home.ui.publicChatRoom.PublicChatRoomFragment"
         android:label="@string/title_public_chatroom"
-        tools:layout="@layout/fragment_public_chatroom" />
+        tools:layout="@layout/fragment_public_chat_room" />
 
     <fragment
         android:id="@+id/navigation_new_chatroom"
-        android:name="com.example.cmpt_362_chitchat.ui.home.ui.newChatroom.NewChatroomFragment"
+        android:name="com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.NewChatRoomFragment"
         android:label="@string/title_new_chatroom"
-        tools:layout="@layout/fragment_new_chatroom" />
+        tools:layout="@layout/fragment_new_chat_room" />
 
     <activity
         android:id="@+id/navigation_profile"

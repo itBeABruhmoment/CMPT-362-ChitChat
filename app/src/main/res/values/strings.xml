@@ -1,19 +1,20 @@
 <resources>
     <string name="app_name">CMPT-362-ChitChat</string>
     <!-- Strings related to login -->
-    <string name="prompt_email">Username</string>
+    <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
+    <string name="prompt_username">Username</string>
     <string name="action_sign_in">Login</string>
     <string name="register">Register</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome !"</string>
-    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_username">Not a valid email</string>
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="title_activity_home">HomeActivity</string>
-    <string name="title_private_chatroom">Private Chatrooms</string>
-    <string name="title_public_chatroom">Public Chatrooms</string>
-    <string name="title_new_chatroom">New Chatroom</string>
+    <string name="title_private_chatroom">Private ChatRooms</string>
+    <string name="title_public_chatroom">Public ChatRooms</string>
+    <string name="title_new_chatroom">New ChatRoom</string>
     <string name="title_profile">Profile</string>
     <string name="add">Add</string>
     <string name="forgot">Forgotten your username or password?</string>
@@ -21,6 +22,7 @@
     <string name="type_a_message">Type a message</string>
     <string name="sent_message">Sent message</string>
     <string name="receive_message">Receive message</string>
+    <string name="delete_chatroom">Delete ChatRoom</string>
 
     <!-- friends activity related -->
     <string name="view_profile">Profile</string>

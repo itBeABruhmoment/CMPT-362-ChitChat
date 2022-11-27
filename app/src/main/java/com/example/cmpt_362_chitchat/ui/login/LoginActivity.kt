@@ -13,18 +13,22 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.cmpt_362_chitchat.databinding.ActivityLoginBinding
 
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.home.HomeActivity
+import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var loginViewModel: LoginViewModel
     private lateinit var binding: ActivityLoginBinding
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -35,9 +39,17 @@ class LoginActivity : AppCompatActivity() {
         val loading = binding.loading
         val register = binding.registerNewUser
 
+        auth = FirebaseAuth.getInstance()
+
         login.setOnClickListener{
-            intent = Intent(this, HomeActivity::class.java)
-            startActivity(intent)
+            auth.signInWithEmailAndPassword(username.toString(), password.toString()).addOnCompleteListener(this){
+                if (it.isSuccessful){
+                    intent = Intent(this, HomeActivity::class.java)
+                    startActivity(intent)
+                }else{
+                    println("DEBUG LOGIN FAILED")
+                }
+            }
         }
 
         register?.setOnClickListener {
