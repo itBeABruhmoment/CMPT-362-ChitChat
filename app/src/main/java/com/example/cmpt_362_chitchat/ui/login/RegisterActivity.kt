@@ -75,7 +75,7 @@ class RegisterActivity : AppCompatActivity() {
             database
                 .child("Users")
                 .child(userId)
-                .child("Username")
+                .child("username")
                 .setValue(username)
         } else {
             println("Debug: user not added to db correctly")
