@@ -17,8 +17,10 @@
             android:layout_margin="4dp"
             android:src="@drawable/ic_launcher_foreground"
             android:onClick="changePicture"
-            android:contentDescription="user's profile photo">
+            android:contentDescription="user's profile photo"
+            android:background="@drawable/image_border">
         </ImageView>
+
     </LinearLayout>
 
     <LinearLayout
@@ -44,4 +46,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="300dp"/>
+
 </RelativeLayout>

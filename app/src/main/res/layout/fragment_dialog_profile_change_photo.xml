@@ -4,30 +4,66 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/camera"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft = "20dp"
-        android:layout_marginTop = "10dp"
-        android:layout_marginBottom = "10dp"
-        android:text = "Open Camera"
-        android:textSize = "24dp"
-        android:onClick="takePhoto"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
         android:gravity="center"
-        />
+        android:layout_marginBottom="10dp"
+        >
 
-    <TextView
-        android:id="@+id/gallery"
-        android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/cameraIcon"
+            android:layout_width="35dp"
+            android:layout_height="30dp"
+            android:contentDescription="camera Icon"
+            android:src="@drawable/ic_baseline_camera_alt_24" />
+
+        <TextView
+            android:id="@+id/camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:onClick="takePhoto"
+            android:text="Open Camera"
+            android:textSize="24dp" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft = "20dp"
-        android:layout_marginTop = "10dp"
-        android:layout_marginBottom = "10dp"
-        android:text = "Select from Gallery"
-        android:textSize = "24dp"
-        android:onClick="selectGallery"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
         android:gravity="center"
-        />
+        android:layout_marginBottom="10dp"
+        >
+
+        <ImageView
+            android:id="@+id/galleryIcon"
+            android:layout_width="35dp"
+            android:layout_height="30dp"
+            android:contentDescription="camera Icon"
+            android:src="@drawable/ic_baseline_photo_library_24" />
+
+
+        <TextView
+            android:id="@+id/gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft = "10dp"
+            android:layout_marginTop = "10dp"
+            android:layout_marginBottom = "10dp"
+            android:text = "Select from Gallery"
+            android:textSize = "24dp"
+            android:onClick="selectGallery"
+            android:gravity="center"
+            />
+    </LinearLayout>
 
 </LinearLayout>

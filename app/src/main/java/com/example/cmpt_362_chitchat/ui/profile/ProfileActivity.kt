@@ -18,8 +18,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.example.cmpt_362_chitchat.R
+import com.example.cmpt_362_chitchat.databinding.ActivityHomeBinding
 import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.io.File
 import java.util.*
 
@@ -45,6 +51,12 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "usernamePlaceHolder", "namePlacerHolder", "DOBPlacerHolder", "genderPlaceHolder", "passwordPlaceHolder"
     )
 
+
+
+
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
@@ -64,7 +76,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
             }
         }
-        //
+
 
 
         //data not saved atm
