@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ListView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -41,6 +42,10 @@ class ViewFriendRequestsFragment : Fragment() {
             Log.i("FriendsActivity", "user not null, continue")
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(tempUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
+        }
+
+        view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
+            viewModel.addFriendRequest("2Lp2Ax0S18gKD8JBk3hBah3VGz73", "2Lp2Ax0S18gKD8JBk3hBah3VGz73")
         }
 
         val requests: ArrayList<User> = arrayListOf(User("Mai"), User("Oliver"), User("Harry"))

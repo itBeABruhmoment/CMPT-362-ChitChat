@@ -15,6 +15,14 @@
         android:layout_marginLeft="10dp"
         />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="test"
+        android:id="@+id/fragment_view_friend_requests_test"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
     <ListView
         android:layout_marginTop="40dp"
         android:id="@+id/fragment_view_friend_requests_list"
