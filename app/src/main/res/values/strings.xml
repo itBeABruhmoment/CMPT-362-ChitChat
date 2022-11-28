@@ -23,4 +23,6 @@
     <string name="sent_message">Sent message</string>
     <string name="receive_message">Receive message</string>
     <string name="delete_chatroom">Delete ChatRoom</string>
+    <string name="video_call">Video call</string>
+    <string name="users_list">Users list</string>
 </resources>

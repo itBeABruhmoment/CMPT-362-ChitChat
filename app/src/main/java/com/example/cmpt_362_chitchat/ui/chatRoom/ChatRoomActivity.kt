@@ -15,11 +15,16 @@ import com.example.cmpt_362_chitchat.data.Message
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
+import org.jitsi.meet.sdk.JitsiMeet
+import org.jitsi.meet.sdk.JitsiMeetActivity
+import org.jitsi.meet.sdk.JitsiMeetConferenceOptions
+import java.net.MalformedURLException
+import java.net.URL
 
 
 class ChatRoomActivity: AppCompatActivity() {
 
-        private lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerView: RecyclerView
     private lateinit var messageBox: EditText
     private lateinit var sendButton: ImageView
 
@@ -91,6 +96,17 @@ class ChatRoomActivity: AppCompatActivity() {
             messageBox.setText("")
         }
 
+        try {
+            val serverURL = URL("https://meet.jit.si")
+            val defaultOptions = JitsiMeetConferenceOptions.Builder()
+                .setServerURL(serverURL)
+                .setWelcomePageEnabled(false)
+                .build()
+            JitsiMeet.setDefaultConferenceOptions(defaultOptions)
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
+        }
+
     }
 
     override fun onDestroy() {
@@ -112,6 +128,10 @@ class ChatRoomActivity: AppCompatActivity() {
         when (item.itemId) {
             R.id.delete_chat_room -> {
                 deleteChatRoom()
+                return true
+            }
+            R.id.video_call -> {
+                videoCall()
                 return true
             }
         }
@@ -155,4 +175,13 @@ class ChatRoomActivity: AppCompatActivity() {
                 }
             })
     }
+
+    private fun videoCall() {
+        val options:JitsiMeetConferenceOptions = JitsiMeetConferenceOptions.Builder()
+            .setRoom("Sample")
+            .setWelcomePageEnabled(false)
+            .build()
+        JitsiMeetActivity.launch(this, options)
+    }
+
 }
