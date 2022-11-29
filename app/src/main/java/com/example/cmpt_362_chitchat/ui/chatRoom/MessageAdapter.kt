@@ -10,7 +10,11 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.data.Message
 
-class MessageAdapter(val context: Context, private val messageList: ArrayList<Message>, private val sender: String): RecyclerView.Adapter<ViewHolder>() {
+class MessageAdapter(
+    val context: Context,
+    private val messageList: ArrayList<Message>,
+    private val sender: String,
+    private var participants: HashMap<String, String>): RecyclerView.Adapter<ViewHolder>() {
 
     private val SEND = 0
     private val RECEIVE = 1
@@ -40,22 +44,22 @@ class MessageAdapter(val context: Context, private val messageList: ArrayList<Me
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var viewHolder: ViewHolder? = null
         val message = messageList[position]
-        if(holder.javaClass == SendViewHolder::class.java) {
 
+        if (holder.javaClass == SendViewHolder::class.java) {
             viewHolder = holder as SendViewHolder
-            holder.user.text = message.username
-            holder.sentMessage.text = message.message
+            viewHolder.user.text = participants[message.sendID]
+            viewHolder.sentMessage.text = message.message
         }
         else {
             viewHolder = holder as ReceiveViewHolder
-            holder.user.text = message.username
-            holder.receiveMessage.text = message.message
+            viewHolder.user.text = participants[message.sendID]
+            viewHolder.receiveMessage.text = message.message
         }
     }
 
     override fun getItemViewType(position: Int): Int {
         val message = messageList[position]
-        return if(sender == message.sendID) {
+        return if (sender == message.sendID) {
             SEND
         } else {
             RECEIVE
@@ -64,6 +68,13 @@ class MessageAdapter(val context: Context, private val messageList: ArrayList<Me
 
     override fun getItemCount(): Int {
         return messageList.size
+    }
+
+    fun replace(newParticipants: HashMap<String, String>?) {
+        if (newParticipants != null) {
+            participants = newParticipants
+            notifyDataSetChanged()
+        }
     }
 
 }

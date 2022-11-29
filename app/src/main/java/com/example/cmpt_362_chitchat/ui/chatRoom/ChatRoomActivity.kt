@@ -1,5 +1,6 @@
 package com.example.cmpt_362_chitchat.ui.chatRoom
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -9,6 +10,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cmpt_362_chitchat.R
@@ -22,7 +24,6 @@ import org.jitsi.meet.sdk.JitsiMeetConferenceOptions
 import java.net.MalformedURLException
 import java.net.URL
 
-
 class ChatRoomActivity: AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
@@ -31,9 +32,13 @@ class ChatRoomActivity: AppCompatActivity() {
 
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var messageList: ArrayList<Message>
-    private lateinit var messageListener: ValueEventListener
 
     private lateinit var database: DatabaseReference
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var messageListener: ValueEventListener
+
+    private lateinit var viewModelFactory: ChatRoomViewModelFactory
+    private lateinit var chatRoomViewModel: ChatRoomViewModel
 
     private lateinit var sendUID: String
     private lateinit var chatRoom: String
@@ -41,30 +46,38 @@ class ChatRoomActivity: AppCompatActivity() {
     private lateinit var chatRoomName: String
     private lateinit var username: String
 
+    private var currentUserIsParticipant = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chatroom)
+        sharedPreferences = getSharedPreferences("sharedPreferences", MODE_PRIVATE)
 
-        database = FirebaseDatabase.getInstance().reference
+        supportActionBar?.title = "Sample chat room"
 
-        chatRoomName = intent.getStringExtra("chatRoomName").toString()
-        supportActionBar?.title = chatRoomName
-
+        username = sharedPreferences.getString("username", "").toString()
         sendUID = Firebase.auth.currentUser?.uid.toString()
-        getUserName()
-
         chatRoom = intent.getStringExtra("chatRoomId").toString()
         chatRoomType= intent.getStringExtra("chatRoomType").toString()
-        println("Debug: loading chatroom $sendUID $chatRoom $chatRoomType")
+        viewModelFactory = ChatRoomViewModelFactory(chatRoom, chatRoomType)
+        chatRoomViewModel =
+            ViewModelProvider(this, viewModelFactory)[ChatRoomViewModel::class.java]
 
         recyclerView = findViewById(R.id.recycler_view)
         messageBox = findViewById(R.id.message)
         sendButton = findViewById(R.id.send_button)
         messageList = ArrayList()
-        messageAdapter = MessageAdapter(this, messageList, sendUID)
+        messageAdapter = MessageAdapter(this, messageList, sendUID, hashMapOf())
+
+        chatRoomViewModel.participants.observe(this) { it ->
+            messageAdapter.replace(it)
+            messageAdapter.notifyDataSetChanged()
+        }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
+
+        database = FirebaseDatabase.getInstance().reference
 
         messageListener = database
             .child("ChatRooms")
@@ -89,8 +102,19 @@ class ChatRoomActivity: AppCompatActivity() {
 
         sendButton.setOnClickListener {
             println("Clicked")
-            val message = Message(messageBox.text.toString(), username, sendUID)
 
+            if (!currentUserIsParticipant && !chatRoomViewModel.getParticipantIds()?.contains(sendUID)!!) {
+                database
+                    .child("ChatRooms")
+                    .child(chatRoomType)
+                    .child(chatRoom)
+                    .child("Participants")
+                    .child(sendUID)
+                    .setValue(true)
+                currentUserIsParticipant = true
+            }
+
+            val message = Message(messageBox.text.toString(), sendUID)
             database
                 .child("ChatRooms")
                 .child(chatRoomType)
@@ -137,6 +161,11 @@ class ChatRoomActivity: AppCompatActivity() {
             .child(chatRoomType)
             .child(chatRoom)
             .child("messages").removeEventListener(messageListener)
+        database
+            .child("ChatRooms")
+            .child(chatRoomType)
+            .child(chatRoom)
+            .child("Participants").removeEventListener(chatRoomViewModel.participantsListener)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

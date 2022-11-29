@@ -49,9 +49,9 @@ class RegisterActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this){
             if (it.isSuccessful){
                 println("DEBUG REGISTER SUCCESS: email: $email, password: $password")
-                addAccountToDatabase(auth.currentUser?.uid, username)
+                addAccountToDatabase(auth.currentUser?.uid, email, username)
                 finish()
-            }else{
+            } else {
                 println("REGISTER FAIL")
             }
         }
@@ -70,13 +70,19 @@ class RegisterActivity : AppCompatActivity() {
         return acc
     }
 
-    private fun addAccountToDatabase(userId: String?, username: String) {
+    private fun addAccountToDatabase(userId: String?, email: String, username: String) {
         if (userId != null) {
             database
                 .child("Users")
                 .child(userId)
                 .child("username")
                 .setValue(username)
+
+            database
+                .child("Users")
+                .child(userId)
+                .child("email")
+                .setValue(email)
         } else {
             println("Debug: user not added to db correctly")
         }
