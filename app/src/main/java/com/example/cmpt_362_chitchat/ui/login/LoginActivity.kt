@@ -33,7 +33,7 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val username = binding.username
+        val email = binding.username
         val password = binding.password
         val login = binding.login
         val loading = binding.loading
@@ -56,7 +56,7 @@ class LoginActivity : AppCompatActivity() {
             login.isEnabled = loginState.isDataValid
 
             if (loginState.usernameError != null) {
-                username.error = getString(loginState.usernameError)
+                email.error = getString(loginState.usernameError)
             }
             if (loginState.passwordError != null) {
                 password.error = getString(loginState.passwordError)
@@ -72,11 +72,13 @@ class LoginActivity : AppCompatActivity() {
             }
             if (loginResult.success != null) {
                 // TODO: cleanup code
-                auth.signInWithEmailAndPassword(username.text.toString(), password.text.toString()).addOnCompleteListener(this) {
+                auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString()).addOnCompleteListener(this) {
                     if (it.isSuccessful){
-                        println("Debug: login success")
+                        println("Debug: login success, firebase: ${auth.currentUser?.displayName.toString()}")
                         intent = Intent(this, HomeActivity::class.java)
+                        setResult(Activity.RESULT_OK)
                         startActivity(intent)
+                        finish()
                     } else{
                         println("DEBUG: LOGIN FAILED")
                     }
@@ -85,12 +87,12 @@ class LoginActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK)
 
             //Complete and destroy login activity once successful
-            finish()
+
         })
 
-        username.afterTextChanged {
+        email.afterTextChanged {
             loginViewModel.loginDataChanged(
-                username.text.toString(),
+                email.text.toString(),
                 password.text.toString()
             )
         }
@@ -98,7 +100,7 @@ class LoginActivity : AppCompatActivity() {
         password.apply {
             afterTextChanged {
                 loginViewModel.loginDataChanged(
-                    username.text.toString(),
+                    email.text.toString(),
                     password.text.toString()
                 )
             }
@@ -107,7 +109,7 @@ class LoginActivity : AppCompatActivity() {
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE ->
                         loginViewModel.login(
-                            username.text.toString(),
+                            email.text.toString(),
                             password.text.toString()
                         )
                 }
@@ -116,7 +118,7 @@ class LoginActivity : AppCompatActivity() {
 
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
-                loginViewModel.login(username.text.toString(), password.text.toString())
+                loginViewModel.login(email.text.toString(), password.text.toString())
             }
         }
     }
