@@ -58,8 +58,13 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                     .child(RECIEVED_REQUESTS)
                     .child(toAdd.id)
                     .setValue(toAdd)
+                    .addOnFailureListener {
+                        Log.i("FriendsActivity", "failed to send request to recipient")
+                    }
                 // to sender
-                addLocation.setValue(toAdd)
+                addLocation.setValue(toAdd).addOnFailureListener {
+                    Log.i("FriendsActivity", "failed to send request to sender")
+                }
             } else {
                 Log.i("FriendsActivity", "no key")
             }
@@ -83,7 +88,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             database
                 .child("Users")
                 .child(friendRequest.recipient)
-                .child(SENT_REQUESTS)
+                .child(RECIEVED_REQUESTS)
                 .child(friendRequest.id)
                 .removeValue().addOnFailureListener {
                     Log.i(
@@ -107,6 +112,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             }
 
+            Log.i("FriendsActivity", "${requests.size} requests")
             val profilesToGet: ArrayList<String> = ArrayList()
             for(request: FriendRequest in requests) {
                 profilesToGet.add(request.sender)
@@ -123,29 +129,6 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                     friendsRequests.value = requestEntries
                 }
             }
-
-            /*
-            val handler = Handler(Looper.getMainLooper())
-            for(request: FriendRequest in requests) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    val data: FriendRequest = request
-
-                    val userName = database.child("Users").child(data.sender).child("username").get()
-
-                    userName.addOnSuccessListener {
-                        val name: String? = it.getValue(String::class.java)
-                        if(name != null) {
-                            Log.i("FriendsActivity", "got name $name")
-                            addUserData(UserData(name, data.sender))
-                        }
-                    }.addOnFailureListener {
-                        Log.i("FriendsActivity", "failed to get username of ${data.sender}")
-                    }
-                }
-            }
-
-             */
-
         }
 
         override fun onCancelled(error: DatabaseError) {
@@ -175,7 +158,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
-    // allow for multiple users to be queried with a single callback
+    // allow for multiple user's data to be queried with a single callback
     private inner class GroupedUserQuery {
         private lateinit var received: ArrayList<UserProfile>
         private var entriesAcquired: Int = 0
@@ -186,6 +169,10 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
 
         constructor(users: ArrayList<String>, onComplete: (ArrayList<UserProfile>, Boolean) -> Unit) {
             this.onComplete = onComplete
+
+            if(users.size == 0) {
+                onComplete(ArrayList(), false)
+            }
 
             // init received
             val placeHolder: UserProfile = UserProfile("")
@@ -245,8 +232,8 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
 
         class FriendRequestEntry {
-            private lateinit var userName: String
-            private lateinit var request: FriendRequest
+            public lateinit var userName: String
+            public lateinit var request: FriendRequest
 
             constructor() {
                 this.userName = ""

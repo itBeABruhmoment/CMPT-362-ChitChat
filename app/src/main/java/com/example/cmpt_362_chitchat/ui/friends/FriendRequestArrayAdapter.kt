@@ -2,9 +2,11 @@ package com.example.cmpt_362_chitchat.ui.friends
 
 import android.app.Activity
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.example.cmpt_362_chitchat.R
@@ -12,7 +14,8 @@ import com.example.cmpt_362_chitchat.R
 
 class FriendRequestArrayAdapter(
     var requests: ArrayList<FriendsActivityViewModel.Companion.FriendRequestEntry>,
-    var activity: Activity
+    var activity: Activity,
+    var viewModel: FriendsActivityViewModel
     ) : BaseAdapter(){
     override fun getCount(): Int {
         return requests.size
@@ -44,7 +47,11 @@ class FriendRequestArrayAdapter(
             alertDialog.show();
             alertDialog.getWindow()?.setLayout(width, height);
         }
-        //view.findViewById<TextView>(R.id.fragment_friend_request_item_name).text = requests[position].userName
+        view.findViewById<TextView>(R.id.fragment_friend_request_item_name).text = requests[position].userName
+        view.findViewById<ImageButton>(R.id.fragment_friend_request_item_reject).setOnClickListener() {
+            Log.i("FriendsActivity", "remove request click")
+            viewModel.removeFriendRequest(requests[position].request)
+        }
         return view
     }
 }

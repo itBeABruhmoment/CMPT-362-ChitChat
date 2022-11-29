@@ -24,6 +24,7 @@ import com.google.firebase.ktx.Firebase
 
 class ViewFriendRequestsFragment : Fragment() {
     private lateinit var viewModel: FriendsActivityViewModel
+    private lateinit var friendRequestsListView: ListView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,16 +49,16 @@ class ViewFriendRequestsFragment : Fragment() {
             viewModel.addFriendRequest("2Lp2Ax0S18gKD8JBk3hBah3VGz73", "2Lp2Ax0S18gKD8JBk3hBah3VGz73")
         }
 
-        /*
-        viewModel.friendsRequests.observe(requireActivity()) {
-            val listView: ListView = view.findViewById(R.id.fragment_view_friend_requests_list)
-            val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(it, requireActivity())
-            listView.adapter = adapter
+        friendRequestsListView = view.findViewById(R.id.fragment_view_friend_requests_list)
+        viewModel.friendsRequests.observe(requireActivity()) { requests ->
+            Log.i("FriendsActivity", "friend request live data update")
+            val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(
+                requests,
+                requireActivity(),
+                viewModel
+            )
+            friendRequestsListView.adapter = adapter
         }
-
-         */
-
-        val requests: ArrayList<User> = arrayListOf(User("Mai"), User("Oliver"), User("Harry"))
 
 
         return view
