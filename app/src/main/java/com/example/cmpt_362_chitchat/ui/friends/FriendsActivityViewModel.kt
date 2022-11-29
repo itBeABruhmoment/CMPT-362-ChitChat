@@ -105,6 +105,43 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    private fun getRequests(
+        uid: String,
+        sentOrReceived: String,
+        onComplete: (ArrayList<FriendRequest>, Boolean) -> Unit
+    ) {
+        database.child("Users")
+            .child(uid)
+            .child(sentOrReceived)
+            .addValueEventListener(RequestDataPostListener(onComplete))
+    }
+
+    private inner class RequestDataPostListener(
+        val onComplete: (ArrayList<FriendRequest>, Boolean) -> Unit
+    ) : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            Log.i("FriendsActivity", "friend request onDataChange")
+            val requests: ArrayList<FriendRequest> = ArrayList()
+            snapshot.children.forEach() {
+                val request: FriendRequest? = it.getValue(FriendRequest::class.java)
+                if(request != null) {
+                    requests.add(request)
+                } else {
+                    Log.i("FriendsActivity", "uid of friend request null")
+                }
+            }
+            onComplete(requests, true)
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.i("FriendsActivity", "error with friend request data")
+            Log.i("FriendsActivity", error.message)
+            onComplete(ArrayList(), false)
+        }
+    }
+
+
+
     private inner class FriendsRequestPostListener : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             Log.i("FriendsActivity", "friend request onDataChange")
@@ -202,6 +239,24 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    /*
+    private inner class CheckIfRequestExists {
+        private lateinit var request: FriendRequest
+
+        constructor(request: FriendRequest) {
+            this.request = request
+            this@FriendsActivityViewModel.database
+                .child("Users")
+                .child(user.uid)
+                .child(SENT_REQUESTS)
+                .addValueEventListener() {
+
+                }
+        }
+    }
+
+     */
+
     // allow for multiple user's data to be queried with a single callback
     private inner class GroupedUserQuery {
         private lateinit var received: ArrayList<UserProfile>
@@ -294,24 +349,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 this.request = request
             }
         }
-
-        /*
-        class FriendRequestData {
-            lateinit var friendRequest: FriendRequest
-            lateinit var senderUserName: String
-
-            private constructor() {}
-
-            constructor(friendRequest: FriendRequest, userName: String) {
-                this@FriendRequestData.friendRequest = friendRequest
-                this@FriendRequestData.username = username
-            }
-        }
-
-         */
     }
-
-
 }
 
 class FriendsActivityViewModelFactory (private val user: FirebaseUser) : ViewModelProvider.Factory {
