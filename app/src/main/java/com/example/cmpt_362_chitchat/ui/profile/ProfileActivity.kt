@@ -21,6 +21,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
+import com.example.ricky_xian_myruns2.Util
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -37,7 +38,11 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
     private lateinit var userPhoto: ImageView
     private lateinit var userImageUri: Uri
     private lateinit var currentPhoto: File
-    val GALLERY = 1
+
+    companion object {
+        val GALLERY = 1
+    }
+
 
     private val calendar = Calendar.getInstance()
 
@@ -68,19 +73,19 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //get data from firebase
         user = FirebaseAuth.getInstance().currentUser!!
         // Name, email address, and profile photo Url
-        val name = user?.displayName
         val email = user?.email
         val photoUrl = user?.photoUrl
 
-        // Check if user's email is verified
-        // The user's ID, unique to the Firebase project. Do NOT use this value to
-        // authenticate with your backend server, if you have one. Use
-        // FirebaseUser.getIdToken() instead.
         val uid = user?.uid
-        println("DEBUG: name $name")
         println("DEBUG: uid $uid")
         println("DEBUG: email $email")
         println("DEBUG: photoUrl $photoUrl")
+
+        //TESTING STUFF HERE
+        if (uid != null) {
+          //  database = FirebaseDatabase.getInstance().getReference("Users")
+          //  database.child(uid).child("anotherAttribute").setValue("helloThere")
+        }
 
         //loads username
         if (uid != null) {
@@ -110,16 +115,27 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
         profileItems?.adapter = profileAdapter
 
-        //Camera code
+        //Camera code from lecture
         userPhoto = findViewById(R.id.userPhoto)
         currentPhoto = File(getExternalFilesDir(null), "userPhoto_img.jpg")
         userImageUri = FileProvider.getUriForFile(this, "com.example.cmpt_362_chitchat", currentPhoto)
         cameraResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-
+                val bitmap = Util.getBitmap(this, userImageUri)
+                userPhoto.setImageBitmap(bitmap)
             }
         }
+
+        //load image at start 
+        /**
+        if (currentPhoto.exists()) {
+            val bitmap = Util.getBitmap(this, userImageUri)
+            userPhoto.setImageBitmap(bitmap)
+        }
+        */
+
+
 
         //data not saved atm
         profileItems?.setOnItemClickListener(){adapterView, view, position, id ->
@@ -175,8 +191,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         }
     }
 
-
-
     override fun onResume() {
         super.onResume()
         println("DEBUG: RESUMED")
@@ -213,6 +227,17 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         photoDialog.dismiss()
     }
 
+    //gallery photo request
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == GALLERY && resultCode == RESULT_OK) {
+            userImageUri = data?.data!!
+            userPhoto.setImageURI(data?.data)
+            Toast.makeText(applicationContext, "saved", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     //switch to friend activity
     fun startFriendActivity(view: View) {
         val intent = Intent(this, FriendsActivity::class. java)
@@ -227,6 +252,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
     //for updating user data
     fun saveUserData(view: View) {
+        user = FirebaseAuth.getInstance().currentUser!!
         //get dialog info
         var dialogID = viewModel.getDialogID()
         var dialog = viewModel.getDialog()
@@ -312,6 +338,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
             }
         } else {
+            //Note this sometimes happen, no clue as to why
             println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
         }
     }
