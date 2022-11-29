@@ -52,6 +52,11 @@ class FriendRequestArrayAdapter(
             Log.i("FriendsActivity", "remove request click")
             viewModel.removeFriendRequest(requests[position].request)
         }
+        view.findViewById<ImageButton>(R.id.fragment_friend_request_item_accept).setOnClickListener() {
+            Log.i("FriendsActivity", "accept")
+            viewModel.addFriend(requests[position].request)
+            viewModel.removeFriendRequest(requests[position].request)
+        }
         return view
     }
 }

@@ -37,10 +37,11 @@ class ManageFriendsFragment : Fragment() {
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
         }
 
-        val friends: ArrayList<User> = arrayListOf(User("Dominic"), User("Leonel"), User("Coleman"), User("Mitchell"))
         val listView: ListView = view.findViewById(R.id.fragment_manage_friends_list)
-        val adapter: FriendsArrayAdapter = FriendsArrayAdapter(friends, requireActivity())
-        listView.adapter = adapter
+        viewModel.friends.observe(requireActivity()) { friends ->
+            val adapter: FriendsArrayAdapter = FriendsArrayAdapter(friends, requireActivity(), viewModel)
+            listView.adapter = adapter
+        }
 
         return view
     }
