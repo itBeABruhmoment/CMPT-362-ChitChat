@@ -41,17 +41,6 @@ class LoginActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        login.setOnClickListener{
-            auth.signInWithEmailAndPassword(username.toString(), password.toString()).addOnCompleteListener(this){
-                if (it.isSuccessful){
-                    intent = Intent(this, HomeActivity::class.java)
-                    startActivity(intent)
-                }else{
-                    println("DEBUG LOGIN FAILED")
-                }
-            }
-        }
-
         register?.setOnClickListener {
             intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
@@ -82,10 +71,16 @@ class LoginActivity : AppCompatActivity() {
                 showLoginFailed(loginResult.error)
             }
             if (loginResult.success != null) {
-                updateUiWithUser(loginResult.success)
-                // TODO: remove later. Using only for testing UI
-                val intent = Intent(this, HomeActivity::class.java)
-                startActivity(intent)
+                // TODO: cleanup code
+                auth.signInWithEmailAndPassword(username.text.toString(), password.text.toString()).addOnCompleteListener(this) {
+                    if (it.isSuccessful){
+                        println("Debug: login success")
+                        intent = Intent(this, HomeActivity::class.java)
+                        startActivity(intent)
+                    } else{
+                        println("DEBUG: LOGIN FAILED")
+                    }
+                }
             }
             setResult(Activity.RESULT_OK)
 
