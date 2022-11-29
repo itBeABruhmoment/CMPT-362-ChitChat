@@ -26,6 +26,7 @@ import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
 import com.example.cmpt_362_chitchat.ui.login.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.*
 import java.io.File
 import java.util.*

@@ -75,13 +75,18 @@ class LoginActivity : AppCompatActivity() {
             if (loginResult.success != null) {
                 // TODO: cleanup code
                 auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString()).addOnCompleteListener(this) {
-                    if (it.isSuccessful){
-                        println("Debug: login success, firebase: ${auth.currentUser?.displayName.toString()}")
+                    /*Email Verification
+                    If email is not verified, cannot login. However this would be annoying to have enabled while we are testing the app so it will be disabled
+                    until the app is finished
+                     */
+                    if (it.isSuccessful){// && auth.currentUser?.isEmailVerified == true){
                         intent = Intent(this, HomeActivity::class.java)
                         setResult(Activity.RESULT_OK)
                         startActivity(intent)
                         finish()
-                    } else{
+                    }else if(auth.currentUser?.isEmailVerified != true) {
+                        println("DEBUG: EMAIL NOT VERIFIED")
+                    }else{
                         println("DEBUG: LOGIN FAILED")
                     }
                 }
