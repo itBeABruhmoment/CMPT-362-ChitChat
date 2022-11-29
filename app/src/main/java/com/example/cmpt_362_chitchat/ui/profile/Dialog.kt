@@ -77,8 +77,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                 title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
                 title.text = "New Username"
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
+                viewModel.setDialogID(dialogID)
             }
 
             NAME_DIALOG -> {
@@ -110,8 +109,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 builder.setView(view)
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
+                viewModel.setDialogID(dialogID)
             }
 
             PHOTO_DIALOG -> {

@@ -22,6 +22,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.*
 import java.io.File
 import java.util.*
 
@@ -43,14 +45,15 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "Username", "Name", "DOB", "Gender", "Password", "Email"
     )
 
-    var userInfo = arrayOf(
-        "usernamePlaceHolder", "namePlacerHolder", "DOBPlacerHolder", "genderPlaceHolder", "passwordPlaceHolder", "emailPlaceHolder"
+    private var userInfo = arrayOf(
+        "username", "Bob", "Feb 3, 2003", "Male", "*******", "email"
     )
 
+
     private lateinit var viewModel: ProfileViewModel
-
     private lateinit var profileAdapter : ProfileAdapter
-
+    private lateinit var database: DatabaseReference
+    private lateinit var user: FirebaseUser
 
 
 
@@ -62,14 +65,13 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //get access to viewModel for user profile
         viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
 
-
-        //connect to firebase
-        val user = FirebaseAuth.getInstance().currentUser
-
+        //get data from firebase
+        user = FirebaseAuth.getInstance().currentUser!!
         // Name, email address, and profile photo Url
         val name = user?.displayName
         val email = user?.email
         val photoUrl = user?.photoUrl
+
         // Check if user's email is verified
         // The user's ID, unique to the Firebase project. Do NOT use this value to
         // authenticate with your backend server, if you have one. Use
@@ -80,17 +82,33 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         println("DEBUG: email $email")
         println("DEBUG: photoUrl $photoUrl")
 
+        //loads username
+        if (uid != null) {
+            database = FirebaseDatabase.getInstance().getReference("Users")
+            database.child(uid).get().addOnSuccessListener {
+                if (it.exists()) {
+                    //load username value
+                    var username = it.child("username").value.toString()
+                    println("DEBUG: username is $username")
+                    //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
+                    userInfo[0] = username
+                    profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                    profileItems?.adapter = profileAdapter
+                }
+            }
+        }
 
         if (email != null) {
             userInfo[5] = email
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
         //setup list adapter for display
+        user = FirebaseAuth.getInstance().currentUser!!
         profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
         profileItems?.adapter = profileAdapter
-
-
-
-
 
         //Camera code
         userPhoto = findViewById(R.id.userPhoto)
@@ -106,7 +124,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //data not saved atm
         profileItems?.setOnItemClickListener(){adapterView, view, position, id ->
             val itemAtPos = adapterView.getItemAtPosition(position)
-            println("DEBUG: $itemAtPos")
 
             when (itemAtPos) {
                 "Username" -> {
@@ -154,17 +171,16 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     newDialog.arguments = bundle
                     newDialog.show(supportFragmentManager, "standard string")
                 }
-
             }
         }
     }
+
+
 
     override fun onResume() {
         super.onResume()
         println("DEBUG: RESUMED")
     }
-
-
 
     //dialog for selecting a new picture
     fun changePicture(view: View) {
@@ -218,14 +234,11 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //firebase connection
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
-
-            var value = profileAdapter.getItem(2)
-            println("DEBUG HEEEEEEEEEEEEEEE $value")
             //email
             if (dialogID == 7) {
                 // get current input text
                 var emailEditText = dialog.findViewById<EditText>(R.id.Edit)
-                val emailString = emailEditText.text.toString()
+                var emailString = emailEditText.text.toString()
 
                 //checking if email is valid
                 if (!TextUtils.isEmpty(emailString) && Patterns.EMAIL_ADDRESS.matcher(emailString).matches()) {
@@ -239,16 +252,64 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                                 profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
                                 profileAdapter.notifyDataSetChanged()
                                 profileItems.adapter = profileAdapter
+                                //let user know email updated and dismiss dialog
+                                Toast.makeText(applicationContext,"Email successfully updated",Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
                             } else {
                                 println("DEBUG: EMAIL DID NOT UPDATE")
                             }
                         }
-                    //let user know email updated and dismiss dialog
-                    Toast.makeText(applicationContext,"Email successfully updated",Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
                 } else {
                     Toast.makeText(applicationContext,"Invalid email",Toast.LENGTH_SHORT).show()
                 }
+            } else if (dialogID == 3) { //Password
+                var newPass = dialog.findViewById<EditText>(R.id.password)
+                var cnewPass = dialog.findViewById<EditText>(R.id.confirmPassword)
+                var newPassString = newPass.text.toString()
+                var newcPassString = cnewPass.text.toString()
+
+                //check if new pass is acceptable
+                if (newPassString == newcPassString && newPassString.length > 5) {
+                    user.updatePassword(newPassString)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                println("DEBUG: Pass updated")
+                                //let user know email updated and dismiss dialog
+                                Toast.makeText(applicationContext,"Password successfully updated",Toast.LENGTH_SHORT).show()
+                                dialog.dismiss()
+                            } else {
+                                println("DEBUG: Pass fail to update")
+                            }
+                        }
+                } else {
+                    Toast.makeText(applicationContext,"Invalid length or password do not match",Toast.LENGTH_SHORT).show()
+                }
+            } else if (dialogID == 4) { //username
+                var username = dialog.findViewById<EditText>(R.id.Edit)
+                var usernameString = username.text.toString()
+
+
+                if (usernameString.length > 5) {
+                    //update username
+                    var uid = user.uid
+                    if (uid != null) {
+                        database = FirebaseDatabase.getInstance().getReference("Users")
+                        database.child(uid).child("username").setValue(usernameString)
+                        userInfo[0] = usernameString
+                        //update view for adapter
+                        profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                        profileAdapter.notifyDataSetChanged()
+                        profileItems.adapter = profileAdapter
+
+                        //dismiss dialog and let user know
+                        Toast.makeText(applicationContext,"username successfully updated",Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                } else {
+                    Toast.makeText(applicationContext,"username was not updated",Toast.LENGTH_SHORT).show()
+                }
+
+
             }
         } else {
             println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
