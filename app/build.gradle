@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId "com.example.cmpt_362_chitchat"
         minSdk 26
-        targetSdk 32
+        targetSdk 31
         versionCode 1
         versionName "1.0"
 
@@ -76,4 +76,5 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:31.0.3')
     implementation "com.google.firebase:firebase-analytics-ktx"
 
+    implementation ('org.jitsi.react:jitsi-meet-sdk:2+')
 }
