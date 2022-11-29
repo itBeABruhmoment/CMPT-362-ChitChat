@@ -19,6 +19,8 @@ import com.example.cmpt_362_chitchat.databinding.ActivityLoginBinding
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.home.HomeActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
 
@@ -121,6 +123,19 @@ class LoginActivity : AppCompatActivity() {
                 loginViewModel.login(email.text.toString(), password.text.toString())
             }
         }
+    }
+
+    override fun onResume() {
+        if (Firebase.auth.currentUser != null){
+            println("DEBUG: USER ALREADY SIGNED IN")
+            intent = Intent(this, HomeActivity::class.java)
+            setResult(Activity.RESULT_OK)
+            startActivity(intent)
+            finish()
+        }else{
+            println("DEBUG: NO USER SIGNED IN")
+        }
+        super.onResume()
     }
 
     private fun updateUiWithUser(model: LoggedInUserView) {
