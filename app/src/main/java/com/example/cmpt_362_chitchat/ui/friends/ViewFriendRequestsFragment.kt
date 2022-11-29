@@ -25,6 +25,7 @@ import com.google.firebase.ktx.Firebase
 class ViewFriendRequestsFragment : Fragment() {
     private lateinit var viewModel: FriendsActivityViewModel
     private lateinit var friendRequestsListView: ListView
+    private lateinit var sentRequestsListView: ListView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,10 +44,10 @@ class ViewFriendRequestsFragment : Fragment() {
             Log.i("FriendsActivity", "user not null, continue")
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(tempUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
-        }
 
-        view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
-            viewModel.addFriendRequest("2Lp2Ax0S18gKD8JBk3hBah3VGz73", "2Lp2Ax0S18gKD8JBk3hBah3VGz73")
+            view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
+                viewModel.addFriendRequest(tempUser.uid, tempUser.uid)
+            }
         }
 
         friendRequestsListView = view.findViewById(R.id.fragment_view_friend_requests_list)
@@ -59,7 +60,15 @@ class ViewFriendRequestsFragment : Fragment() {
             )
             friendRequestsListView.adapter = adapter
         }
-
+        sentRequestsListView = view.findViewById(R.id.fragment_view_sent_requests_list)
+        viewModel.sentRequests.observe(requireActivity()) { sent ->
+            val adapter: SentRequestArrayAdapter = SentRequestArrayAdapter(
+                sent,
+                requireActivity(),
+                viewModel
+            )
+            sentRequestsListView.adapter = adapter
+        }
 
         return view
     }

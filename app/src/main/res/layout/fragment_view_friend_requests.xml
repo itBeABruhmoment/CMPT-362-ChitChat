@@ -24,11 +24,34 @@
         app:layout_constraintLeft_toLeftOf="parent"/>
 
     <ListView
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:id="@+id/fragment_view_friend_requests_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_weight="10"
         app:layout_constraintTop_toBottomOf="@id/fragment_view_friend_requests_text"
+        app:layout_constraintBottom_toTopOf="@id/fragment_view_sent_requests_list"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <TextView
+        android:id="@+id/fragment_view_sent_requests_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sent"
+        app:layout_constraintTop_toBottomOf="@id/fragment_view_friend_requests_list"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        />
+
+    <ListView
+        android:layout_marginTop="40dp"
+        android:id="@+id/fragment_view_sent_requests_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_weight="10"
+        app:layout_constraintTop_toBottomOf="@id/fragment_view_friend_requests_list"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

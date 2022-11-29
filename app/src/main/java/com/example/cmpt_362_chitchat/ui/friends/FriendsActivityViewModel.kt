@@ -21,6 +21,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     // for storing info needed to display users
     private var database: DatabaseReference = Firebase.database.reference
     public val friendsRequests: MutableLiveData<ArrayList<FriendRequestEntry>> = MutableLiveData()
+    public val sentRequests: MutableLiveData<ArrayList<FriendRequestEntry>> = MutableLiveData()
     public val friends: MutableLiveData<ArrayList<String>> = MutableLiveData()
 
     init {
@@ -36,6 +37,11 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             .child(user.uid)
             .child(RECIEVED_REQUESTS)
             .addValueEventListener(FriendsRequestPostListener())
+
+        database.child("Users")
+            .child(user.uid)
+            .child(SENT_REQUESTS)
+            .addValueEventListener(SentRequestPostListener())
 
     }
 
@@ -127,6 +133,44 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                         requestEntries.add(FriendRequestEntry(profiles[i].userName, requests[i]))
                     }
                     friendsRequests.value = requestEntries
+                }
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.i("FriendsActivity", "error with friend request data")
+            Log.i("FriendsActivity", error.message)
+        }
+    }
+
+    private inner class SentRequestPostListener : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            Log.i("FriendsActivity", "sent request onDataChange")
+            val requests: ArrayList<FriendRequest> = ArrayList()
+            snapshot.children.forEach() {
+                val request: FriendRequest? = it.getValue(FriendRequest::class.java)
+                if(request != null) {
+                    requests.add(request)
+                } else {
+                    Log.i("FriendsActivity", "uid of sent request null")
+                }
+            }
+
+            Log.i("FriendsActivity", "${requests.size} sent requests")
+            val profilesToGet: ArrayList<String> = ArrayList()
+            for(request: FriendRequest in requests) {
+                profilesToGet.add(request.recipient)
+            }
+            val queryUsers: GroupedUserQuery = GroupedUserQuery(profilesToGet) { profiles, failed ->
+                if(failed) {
+                    Log.i("FriendsActivity", "failed to get all users")
+                } else {
+                    Log.i("FriendsActivity", "got all users")
+                    val requestEntries: ArrayList<FriendRequestEntry> = ArrayList(profiles.size)
+                    for(i in 0 until profiles.size) {
+                        requestEntries.add(FriendRequestEntry(profiles[i].userName, requests[i]))
+                    }
+                    sentRequests.value = requestEntries
                 }
             }
         }
