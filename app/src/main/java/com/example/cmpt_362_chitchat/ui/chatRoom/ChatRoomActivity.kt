@@ -53,7 +53,10 @@ class ChatRoomActivity: AppCompatActivity() {
         setContentView(R.layout.activity_chatroom)
         sharedPreferences = getSharedPreferences("sharedPreferences", MODE_PRIVATE)
 
-        supportActionBar?.title = "Sample chat room"
+        database = FirebaseDatabase.getInstance().reference
+
+        chatRoomName = intent.getStringExtra("chatRoomName").toString()
+        supportActionBar?.title = chatRoomName
 
         username = sharedPreferences.getString("username", "").toString()
         sendUID = Firebase.auth.currentUser?.uid.toString()
@@ -76,8 +79,6 @@ class ChatRoomActivity: AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
-
-        database = FirebaseDatabase.getInstance().reference
 
         messageListener = database
             .child("ChatRooms")

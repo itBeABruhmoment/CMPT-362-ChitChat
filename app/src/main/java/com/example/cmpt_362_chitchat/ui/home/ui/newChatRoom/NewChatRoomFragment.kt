@@ -118,6 +118,7 @@ class NewChatRoomFragment : Fragment() {
             val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
             intent.putExtra("chatRoomId", newChatRoomId)
             intent.putExtra("chatRoomType", chatRoomType)
+            intent.putExtra("chatRoomName", chatRoomName)
             startActivity(intent)
         }
 
