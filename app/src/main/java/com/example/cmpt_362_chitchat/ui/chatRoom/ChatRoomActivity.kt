@@ -199,7 +199,7 @@ class ChatRoomActivity: AppCompatActivity() {
 
     private fun videoCall() {
         val options:JitsiMeetConferenceOptions = JitsiMeetConferenceOptions.Builder()
-            .setRoom("Sample")
+            .setRoom(chatRoom)
             .setWelcomePageEnabled(false)
             .build()
         JitsiMeetActivity.launch(this, options)
