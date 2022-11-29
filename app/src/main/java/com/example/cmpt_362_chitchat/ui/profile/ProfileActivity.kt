@@ -8,26 +8,23 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.TextUtils
+import android.util.Patterns
 import android.view.View
-import android.widget.DatePicker
-import android.widget.ImageView
-import android.widget.ListView
+import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
-import com.example.cmpt_362_chitchat.databinding.ActivityHomeBinding
 import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 import java.util.*
+
 
 class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener {
     private lateinit var profileItems: ListView
@@ -43,16 +40,16 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
     private val calendar = Calendar.getInstance()
 
     private val profileDescription = arrayOf(
-        "Username", "Name", "DOB", "Gender", "Password"
+        "Username", "Name", "DOB", "Gender", "Password", "Email"
     )
 
-    //replace with database later
-    private val placeHolderDatabaseInfo = arrayOf(
-        "usernamePlaceHolder", "namePlacerHolder", "DOBPlacerHolder", "genderPlaceHolder", "passwordPlaceHolder"
+    var userInfo = arrayOf(
+        "usernamePlaceHolder", "namePlacerHolder", "DOBPlacerHolder", "genderPlaceHolder", "passwordPlaceHolder", "emailPlaceHolder"
     )
 
+    private lateinit var viewModel: ProfileViewModel
 
-
+    private lateinit var profileAdapter : ProfileAdapter
 
 
 
@@ -62,11 +59,40 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         setContentView(R.layout.activity_profile)
         profileItems = findViewById(R.id.profileItems)
 
-        val profileAdapter = ProfileAdapter(this, profileDescription, placeHolderDatabaseInfo)
+        //get access to viewModel for user profile
+        viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+
+
+        //connect to firebase
+        val user = FirebaseAuth.getInstance().currentUser
+
+        // Name, email address, and profile photo Url
+        val name = user?.displayName
+        val email = user?.email
+        val photoUrl = user?.photoUrl
+        // Check if user's email is verified
+        // The user's ID, unique to the Firebase project. Do NOT use this value to
+        // authenticate with your backend server, if you have one. Use
+        // FirebaseUser.getIdToken() instead.
+        val uid = user?.uid
+        println("DEBUG: name $name")
+        println("DEBUG: uid $uid")
+        println("DEBUG: email $email")
+        println("DEBUG: photoUrl $photoUrl")
+
+
+        if (email != null) {
+            userInfo[5] = email
+        }
+        //setup list adapter for display
+        profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
         profileItems?.adapter = profileAdapter
 
 
-        //currently using lecture code
+
+
+
+        //Camera code
         userPhoto = findViewById(R.id.userPhoto)
         currentPhoto = File(getExternalFilesDir(null), "userPhoto_img.jpg")
         userImageUri = FileProvider.getUriForFile(this, "com.example.cmpt_362_chitchat", currentPhoto)
@@ -76,8 +102,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
             }
         }
-
-
 
         //data not saved atm
         profileItems?.setOnItemClickListener(){adapterView, view, position, id ->
@@ -122,9 +146,25 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     newDialog.arguments = bundle
                     newDialog.show(supportFragmentManager, "password")
                 }
+
+                "Email" -> {
+                    val newDialog  = Dialog()
+                    val bundle = Bundle()
+                    bundle.putInt(Dialog.DIALOG_KEY, Dialog.EMAIL_DIALOG)
+                    newDialog.arguments = bundle
+                    newDialog.show(supportFragmentManager, "standard string")
+                }
+
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        println("DEBUG: RESUMED")
+    }
+
+
 
     //dialog for selecting a new picture
     fun changePicture(view: View) {
@@ -168,5 +208,58 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
     }
 
+
+    //for updating user data
+    fun saveUserData(view: View) {
+        //get dialog info
+        var dialogID = viewModel.getDialogID()
+        var dialog = viewModel.getDialog()
+
+        //firebase connection
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user != null) {
+
+            var value = profileAdapter.getItem(2)
+            println("DEBUG HEEEEEEEEEEEEEEE $value")
+            //email
+            if (dialogID == 7) {
+                // get current input text
+                var emailEditText = dialog.findViewById<EditText>(R.id.Edit)
+                val emailString = emailEditText.text.toString()
+
+                //checking if email is valid
+                if (!TextUtils.isEmpty(emailString) && Patterns.EMAIL_ADDRESS.matcher(emailString).matches()) {
+                    //update email info
+                    user.updateEmail(emailString)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                println("DEBUG: EMAIL UPDATED")
+                                userInfo[5] = emailString
+                                //update view for adapter
+                                profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                                profileAdapter.notifyDataSetChanged()
+                                profileItems.adapter = profileAdapter
+                            } else {
+                                println("DEBUG: EMAIL DID NOT UPDATE")
+                            }
+                        }
+                    //let user know email updated and dismiss dialog
+                    Toast.makeText(applicationContext,"Email successfully updated",Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(applicationContext,"Invalid email",Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
+        }
+    }
+
+    //cancel for dialog
+    fun cancelButton(view: View) {
+        //get dialog info
+        var dialog = viewModel.getDialog()
+        dialog.dismiss()
+    }
 
 }
