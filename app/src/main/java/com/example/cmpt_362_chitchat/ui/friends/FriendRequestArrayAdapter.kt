@@ -1,7 +1,6 @@
 package com.example.cmpt_362_chitchat.ui.friends
 
 import android.app.Activity
-import android.content.Context
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,10 @@ import androidx.appcompat.app.AlertDialog
 import com.example.cmpt_362_chitchat.R
 
 
-class FriendRequestArrayAdapter(var requests: ArrayList<User>, var activity: Activity) : BaseAdapter(){
+class FriendRequestArrayAdapter(
+    var requests: ArrayList<FriendsActivityViewModel.Companion.FriendRequestEntry>,
+    var activity: Activity
+    ) : BaseAdapter(){
     override fun getCount(): Int {
         return requests.size
     }
@@ -42,7 +44,7 @@ class FriendRequestArrayAdapter(var requests: ArrayList<User>, var activity: Act
             alertDialog.show();
             alertDialog.getWindow()?.setLayout(width, height);
         }
-        view.findViewById<TextView>(R.id.fragment_friend_request_item_name).text = requests[position].name
+        //view.findViewById<TextView>(R.id.fragment_friend_request_item_name).text = requests[position].userName
         return view
     }
 }

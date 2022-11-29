@@ -48,10 +48,17 @@ class ViewFriendRequestsFragment : Fragment() {
             viewModel.addFriendRequest("2Lp2Ax0S18gKD8JBk3hBah3VGz73", "2Lp2Ax0S18gKD8JBk3hBah3VGz73")
         }
 
+        /*
+        viewModel.friendsRequests.observe(requireActivity()) {
+            val listView: ListView = view.findViewById(R.id.fragment_view_friend_requests_list)
+            val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(it, requireActivity())
+            listView.adapter = adapter
+        }
+
+         */
+
         val requests: ArrayList<User> = arrayListOf(User("Mai"), User("Oliver"), User("Harry"))
-        val listView: ListView = view.findViewById(R.id.fragment_view_friend_requests_list)
-        val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(requests, requireActivity())
-        listView.adapter = adapter
+
 
         return view
     }

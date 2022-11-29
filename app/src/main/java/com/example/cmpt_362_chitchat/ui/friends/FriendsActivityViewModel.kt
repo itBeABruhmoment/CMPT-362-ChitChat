@@ -1,8 +1,5 @@
 package com.example.cmpt_362_chitchat.ui.friends
 
-import android.app.DownloadManager.Request
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,12 +15,12 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.lang.IllegalArgumentException
 
 class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
+    // for storing info needed to display users
     private var database: DatabaseReference = Firebase.database.reference
-    public val friendsRequests: MutableLiveData<ArrayList<FriendRequest>> = MutableLiveData()
+    public val friendsRequests: MutableLiveData<ArrayList<FriendRequestEntry>> = MutableLiveData()
     public val friends: MutableLiveData<ArrayList<String>> = MutableLiveData()
 
     init {
@@ -110,6 +107,24 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             }
 
+            val profilesToGet: ArrayList<String> = ArrayList()
+            for(request: FriendRequest in requests) {
+                profilesToGet.add(request.sender)
+            }
+            val queryUsers: GroupedUserQuery = GroupedUserQuery(profilesToGet) { profiles, failed ->
+                if(failed) {
+                    Log.i("FriendsActivity", "failed to get all users")
+                } else {
+                    Log.i("FriendsActivity", "got all users")
+                    val requestEntries: ArrayList<FriendRequestEntry> = ArrayList(profiles.size)
+                    for(i in 0 until profiles.size) {
+                        requestEntries.add(FriendRequestEntry(profiles[i].userName, requests[i]))
+                    }
+                    friendsRequests.value = requestEntries
+                }
+            }
+
+            /*
             val handler = Handler(Looper.getMainLooper())
             for(request: FriendRequest in requests) {
                 viewModelScope.launch(Dispatchers.IO) {
@@ -119,12 +134,9 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
 
                     userName.addOnSuccessListener {
                         val name: String? = it.getValue(String::class.java)
-
-                        // update livedata
-                        handler.post() {
-                            if(name != null) {
-                                Log.i("FriendsActivity", "got name $name")
-                            }
+                        if(name != null) {
+                            Log.i("FriendsActivity", "got name $name")
+                            addUserData(UserData(name, data.sender))
                         }
                     }.addOnFailureListener {
                         Log.i("FriendsActivity", "failed to get username of ${data.sender}")
@@ -132,7 +144,8 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             }
 
-            friendsRequests.value = requests
+             */
+
         }
 
         override fun onCancelled(error: DatabaseError) {
@@ -162,21 +175,109 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    // allow for multiple users to be queried with a single callback
+    private inner class GroupedUserQuery {
+        private lateinit var received: ArrayList<UserProfile>
+        private var entriesAcquired: Int = 0
+        private var failed: Boolean = false
+        private lateinit var onComplete: (ArrayList<UserProfile>, Boolean) -> Unit
+
+        private constructor() { }
+
+        constructor(users: ArrayList<String>, onComplete: (ArrayList<UserProfile>, Boolean) -> Unit) {
+            this.onComplete = onComplete
+
+            // init received
+            val placeHolder: UserProfile = UserProfile("")
+            received = ArrayList(users.size)
+            for(i in 0 until users.size) {
+                received.add(placeHolder)
+            }
+
+            viewModelScope.launch(Dispatchers.IO) {
+                for(i in 0 until users.size) {
+                    val tempUid: String = users[i] // I have no idea how thread safe for loops are
+                    val index: Int = i
+                    val userName = database.child("Users").child(tempUid).child("username").get()
+
+                    userName.addOnSuccessListener {
+                        val name: String? = it.getValue(String::class.java)
+                        if(name != null) {
+                            Log.i("FriendsActivity", "got name $name")
+                            addReceived(index, UserProfile(name))
+                        }
+                    }.addOnFailureListener {
+                        setFailed()
+                        Log.i("FriendsActivity", "failed to get username of ${tempUid}")
+                    }
+                }
+            }
+        }
+
+        @Synchronized
+        private fun addReceived(index: Int, userData: UserProfile) {
+            received[index] = userData
+            entriesAcquired++
+            Log.i("FriendsActivity", "$this: $entriesAcquired/${received.size}")
+
+            // all queries done
+            if(entriesAcquired == received.size) {
+                onComplete(received, failed)
+            }
+        }
+
+        @Synchronized
+        private fun setFailed() {
+            failed = true
+        }
+    }
+
     companion object {
         val SENT_REQUESTS = "sent"
         val RECIEVED_REQUESTS = "recieved"
 
+        class UserProfile {
+            public lateinit var userName: String
+
+            constructor(userName: String) {
+                this.userName = userName
+            }
+        }
+
+        class FriendRequestEntry {
+            private lateinit var userName: String
+            private lateinit var request: FriendRequest
+
+            constructor() {
+                this.userName = ""
+                this.request = FriendRequest()
+            }
+
+            constructor(userName: String) {
+                this.userName = userName
+                this.request = FriendRequest()
+            }
+
+            constructor(userName: String, request: FriendRequest) {
+                this.userName = userName
+                this.request = request
+            }
+        }
+
+        /*
         class FriendRequestData {
-            lateinit var uid: String
-            lateinit var username: String
+            lateinit var friendRequest: FriendRequest
+            lateinit var senderUserName: String
 
             private constructor() {}
 
-            constructor(uid: String, userName: String) {
-                this@FriendRequestData.uid = uid
+            constructor(friendRequest: FriendRequest, userName: String) {
+                this@FriendRequestData.friendRequest = friendRequest
                 this@FriendRequestData.username = username
             }
         }
+
+         */
     }
 
 
