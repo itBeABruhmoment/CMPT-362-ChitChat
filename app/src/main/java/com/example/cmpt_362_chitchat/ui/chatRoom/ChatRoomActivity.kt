@@ -1,6 +1,7 @@
 package com.example.cmpt_362_chitchat.ui.chatRoom
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
@@ -37,14 +38,21 @@ class ChatRoomActivity: AppCompatActivity() {
     private lateinit var sendUID: String
     private lateinit var chatRoom: String
     private lateinit var chatRoomType: String
+    private lateinit var chatRoomName: String
+    private lateinit var username: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chatroom)
 
-        supportActionBar?.title = "Sample chat room"
+        database = FirebaseDatabase.getInstance().reference
+
+        chatRoomName = intent.getStringExtra("chatRoomName").toString()
+        supportActionBar?.title = chatRoomName
 
         sendUID = Firebase.auth.currentUser?.uid.toString()
+        getUserName()
+
         chatRoom = intent.getStringExtra("chatRoomId").toString()
         chatRoomType= intent.getStringExtra("chatRoomType").toString()
         println("Debug: loading chatroom $sendUID $chatRoom $chatRoomType")
@@ -57,8 +65,6 @@ class ChatRoomActivity: AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
-
-        database = FirebaseDatabase.getInstance().reference
 
         messageListener = database
             .child("ChatRooms")
@@ -83,7 +89,7 @@ class ChatRoomActivity: AppCompatActivity() {
 
         sendButton.setOnClickListener {
             println("Clicked")
-            val message = Message(messageBox.text.toString(), sendUID)
+            val message = Message(messageBox.text.toString(), username, sendUID)
 
             database
                 .child("ChatRooms")
@@ -96,6 +102,7 @@ class ChatRoomActivity: AppCompatActivity() {
             messageBox.setText("")
         }
 
+        // Initialize video call servcer URL
         try {
             val serverURL = URL("https://meet.jit.si")
             val defaultOptions = JitsiMeetConferenceOptions.Builder()
@@ -107,6 +114,20 @@ class ChatRoomActivity: AppCompatActivity() {
             e.printStackTrace()
         }
 
+    }
+
+    private fun getUserName() {
+        database
+            .child("Users")
+            .child(sendUID)
+            .child("username")
+            .get()
+            .addOnSuccessListener {
+                username = it.value.toString()
+            }
+            .addOnFailureListener {
+                Log.e("firebase", "Error getting data", it)
+            }
     }
 
     override fun onDestroy() {

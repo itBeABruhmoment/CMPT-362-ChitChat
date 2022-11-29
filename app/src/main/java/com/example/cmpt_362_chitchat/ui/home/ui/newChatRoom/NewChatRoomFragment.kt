@@ -55,13 +55,12 @@ class NewChatRoomFragment : Fragment() {
         newChatroomButton.setOnClickListener {
             val newChatRoomId = UUID.randomUUID().toString()
             val chatRoomType = chatroomTypeSpinner.selectedItem.toString()
-            val chatRoomName = chatRoomNameEditText.text
+            val chatRoomName = chatRoomNameEditText.text.toString()
 
             database
                 .child("ChatRooms")
                 .child(chatRoomType)
                 .child(newChatRoomId)
-                .child("ChatRoomName")
                 .child("ownerId")
                 .setValue(auth.currentUser?.uid)
 

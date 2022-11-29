@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.data.Message
-import com.google.firebase.auth.FirebaseAuth
 
 class MessageAdapter(val context: Context, private val messageList: ArrayList<Message>, private val sender: String): RecyclerView.Adapter<ViewHolder>() {
 
@@ -44,12 +43,12 @@ class MessageAdapter(val context: Context, private val messageList: ArrayList<Me
         if(holder.javaClass == SendViewHolder::class.java) {
 
             viewHolder = holder as SendViewHolder
-            holder.user.text = message.sendID
+            holder.user.text = message.username
             holder.sentMessage.text = message.message
         }
         else {
             viewHolder = holder as ReceiveViewHolder
-            holder.user.text = message.sendID
+            holder.user.text = message.username
             holder.receiveMessage.text = message.message
         }
     }
