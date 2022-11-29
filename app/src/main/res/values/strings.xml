@@ -25,4 +25,5 @@
     <string name="delete_chatroom">Delete ChatRoom</string>
     <string name="video_call">Video call</string>
     <string name="users_list">Users list</string>
+    <string name="enter_chat_room_name">Enter chat room name</string>
 </resources>

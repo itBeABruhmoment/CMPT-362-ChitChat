@@ -13,6 +13,13 @@
         android:layout_height="wrap_content"
         android:paddingBottom="15dp"/>
 
+    <EditText
+        android:id="@+id/chat_room_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="15dp"
+        android:hint="@string/enter_chat_room_name" />
+
     <Button
         android:id="@+id/button_new_chatroom"
         android:layout_width="wrap_content"

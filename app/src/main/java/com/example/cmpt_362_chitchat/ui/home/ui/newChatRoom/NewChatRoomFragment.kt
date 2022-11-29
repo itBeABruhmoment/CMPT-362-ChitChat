@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.example.cmpt_362_chitchat.databinding.FragmentNewChatRoomBinding
@@ -48,17 +49,28 @@ class NewChatRoomFragment : Fragment() {
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, chatroomTypes)
         chatroomTypeSpinner.adapter = chatroomTypeAdapter
 
+        val chatRoomNameEditText: EditText = binding.chatRoomName
+
         val newChatroomButton: Button = binding.buttonNewChatroom
         newChatroomButton.setOnClickListener {
             val newChatRoomId = UUID.randomUUID().toString()
             val chatRoomType = chatroomTypeSpinner.selectedItem.toString()
+            val chatRoomName = chatRoomNameEditText.text
 
             database
                 .child("ChatRooms")
                 .child(chatRoomType)
                 .child(newChatRoomId)
+                .child("ChatRoomName")
                 .child("ownerId")
                 .setValue(auth.currentUser?.uid)
+
+            database
+                .child("ChatRooms")
+                .child(chatRoomType)
+                .child(newChatRoomId)
+                .child("ChatRoomName")
+                .setValue(chatRoomName)
 
             if (chatRoomType == "Private") {
                 database.child("Users")
@@ -71,6 +83,7 @@ class NewChatRoomFragment : Fragment() {
             val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
             intent.putExtra("chatRoomId", newChatRoomId)
             intent.putExtra("chatRoomType", chatRoomType)
+            intent.putExtra("chatRoomName", chatRoomName)
             startActivity(intent)
         }
 
