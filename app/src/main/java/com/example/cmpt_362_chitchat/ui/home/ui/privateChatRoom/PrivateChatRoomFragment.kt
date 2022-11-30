@@ -34,10 +34,10 @@ class PrivateChatRoomFragment : Fragment() {
         val chatroomsAdapter = ChatRoomListAdapter(
             this.requireContext(),
             android.R.layout.simple_list_item_2,
-            privateChatRoomViewModel.chatrooms.value!!
+            privateChatRoomViewModel.chatRoomNames.value!!
         )
 
-        privateChatRoomViewModel.chatrooms.observe(viewLifecycleOwner) { it ->
+        privateChatRoomViewModel.chatRoomNames.observe(viewLifecycleOwner) {
             chatroomsAdapter.replace(it)
             chatroomsAdapter.notifyDataSetChanged()
         }
@@ -47,6 +47,7 @@ class PrivateChatRoomFragment : Fragment() {
             val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
             intent.putExtra("chatRoomId", privateChatRoomViewModel.getChatroom(position))
             intent.putExtra("chatRoomType", "Private")
+            intent.putExtra("chatRoomName", privateChatRoomViewModel.chatRoomNames.value!![position])
             startActivity(intent)
         }
 
