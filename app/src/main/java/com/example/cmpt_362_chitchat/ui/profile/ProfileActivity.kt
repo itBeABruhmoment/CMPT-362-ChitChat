@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -21,31 +22,27 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
-import com.example.ricky_xian_myruns2.Util
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import java.io.File
 import java.util.*
 
 
 class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener {
-    private lateinit var profileItems: ListView
-    private lateinit var photoDialog: Dialog
-
-
+    //camera stuff
     private lateinit var cameraResult: ActivityResultLauncher<Intent>
     private lateinit var userPhoto: ImageView
     private lateinit var userImageUri: Uri
-    private lateinit var currentPhoto: File
-
+    private lateinit var photoFile: File
     companion object {
         val GALLERY = 1
     }
 
-
-    private val calendar = Calendar.getInstance()
-
+    //list stuff
+    private lateinit var profileItems: ListView
     private val profileDescription = arrayOf(
         "Username", "Name", "DOB", "Gender", "Password", "Email"
     )
@@ -54,13 +51,15 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "username", "Bob", "Feb 3, 2003", "Male", "*******", "email"
     )
 
-
+    //viewModel + database
     private lateinit var viewModel: ProfileViewModel
     private lateinit var profileAdapter : ProfileAdapter
     private lateinit var database: DatabaseReference
     private lateinit var user: FirebaseUser
+    private lateinit var storageReference : StorageReference
 
-
+    private val calendar = Calendar.getInstance()
+    private lateinit var photoDialog: Dialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,26 +67,26 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         profileItems = findViewById(R.id.profileItems)
 
         //get access to viewModel for user profile
-        viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+        viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
 
         //get data from firebase
         user = FirebaseAuth.getInstance().currentUser!!
         // Name, email address, and profile photo Url
-        val email = user?.email
-        val photoUrl = user?.photoUrl
+        val email = user.email
+        val photoUrl = user.photoUrl
 
         val uid = user?.uid
         println("DEBUG: uid $uid")
         println("DEBUG: email $email")
         println("DEBUG: photoUrl $photoUrl")
 
-        //TESTING STUFF HERE
+        //adds attribute to database
         if (uid != null) {
           //  database = FirebaseDatabase.getInstance().getReference("Users")
           //  database.child(uid).child("anotherAttribute").setValue("helloThere")
         }
 
-        //loads username
+        //change username placeholder (use firebase username)
         if (uid != null) {
             database = FirebaseDatabase.getInstance().getReference("Users")
             database.child(uid).get().addOnSuccessListener {
@@ -103,6 +102,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             }
         }
 
+        //change email placeholder (use firebase email)
         if (email != null) {
             userInfo[5] = email
         }
@@ -115,29 +115,26 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
         profileItems?.adapter = profileAdapter
 
+        //load user photo from database
+        val uid = user.uid
+        loadPhoto(uid)
+
         //Camera code from lecture
         userPhoto = findViewById(R.id.userPhoto)
-        currentPhoto = File(getExternalFilesDir(null), "userPhoto_img.jpg")
-        userImageUri = FileProvider.getUriForFile(this, "com.example.cmpt_362_chitchat", currentPhoto)
+        photoFile = File(getExternalFilesDir(null), "userPhoto_img.jpg")
+        userImageUri = FileProvider.getUriForFile(this, "com.example.cmpt_362_chitchat", photoFile)
+
+        //camera photo success
         cameraResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-                val bitmap = Util.getBitmap(this, userImageUri)
-                userPhoto.setImageBitmap(bitmap)
+                // get uid
+                val uid = user.uid
+                uploadPhoto(uid) // upload photo to database storage based on user id
             }
         }
 
-        //load image at start 
-        /**
-        if (currentPhoto.exists()) {
-            val bitmap = Util.getBitmap(this, userImageUri)
-            userPhoto.setImageBitmap(bitmap)
-        }
-        */
-
-
-
-        //data not saved atm
+        //work in progress
         profileItems?.setOnItemClickListener(){adapterView, view, position, id ->
             val itemAtPos = adapterView.getItemAtPosition(position)
 
@@ -196,6 +193,37 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         println("DEBUG: RESUMED")
     }
 
+    //load photo from database
+    private fun loadPhoto(uid : String) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("UserPhotos/$uid")
+        //create a temp location for photo
+        val localFile = File.createTempFile("tempImage", "jpg")
+        storageRef.getFile(localFile).addOnSuccessListener {
+            val bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
+            //update userPhoto
+            userPhoto.setImageBitmap(bitmap)
+            println("DEBUG: photo successfully loaded")
+        }.addOnFailureListener {
+            println("DEBUG: photo was not able to load")
+        }
+    }
+
+    //upload image to database
+    private fun uploadPhoto(uid : String) {
+        if (userImageUri != null) { // safety check
+            //add image to specify firebase storage location
+            storageReference = FirebaseStorage.getInstance().getReference("UserPhotos/$uid")
+            storageReference.putFile(userImageUri).addOnSuccessListener {
+                Toast.makeText(this, "Photo saved", Toast.LENGTH_SHORT).show()
+                loadPhoto(uid) //update the image used for userPhoto
+            }.addOnFailureListener {
+                Toast.makeText(this, "Photo fail to save", Toast.LENGTH_SHORT).show()
+            }
+        } else { // shouldn't happen
+            Toast.makeText(this, "Unknown error has occurred, Photo didn't get uploaded to database storage", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     //dialog for selecting a new picture
     fun changePicture(view: View) {
         photoDialog = Dialog()
@@ -212,6 +240,17 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         photoDialog.dismiss()
     }
 
+    //gallery photo request
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == GALLERY && resultCode == RESULT_OK) {
+            userImageUri = data?.data!!
+            // get uid
+            val uid = user.uid
+            uploadPhoto(uid) // upload photo to database storage based on user id
+        }
+    }
+
     //open camera for photo
     fun takePhoto(view: View) {
         //checks permission
@@ -220,23 +259,11 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             || ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA), 0)
         }
-
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, userImageUri)
         cameraResult.launch(intent)
         photoDialog.dismiss()
     }
-
-    //gallery photo request
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GALLERY && resultCode == RESULT_OK) {
-            userImageUri = data?.data!!
-            userPhoto.setImageURI(data?.data)
-            Toast.makeText(applicationContext, "saved", Toast.LENGTH_SHORT).show()
-        }
-    }
-
 
     //switch to friend activity
     fun startFriendActivity(view: View) {
@@ -334,8 +361,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 } else {
                     Toast.makeText(applicationContext,"username was not updated",Toast.LENGTH_SHORT).show()
                 }
-
-
             }
         } else {
             //Note this sometimes happen, no clue as to why
@@ -346,8 +371,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
     //cancel for dialog
     fun cancelButton(view: View) {
         //get dialog info
-        var dialog = viewModel.getDialog()
+        val dialog = viewModel.getDialog()
         dialog.dismiss()
     }
-
 }
