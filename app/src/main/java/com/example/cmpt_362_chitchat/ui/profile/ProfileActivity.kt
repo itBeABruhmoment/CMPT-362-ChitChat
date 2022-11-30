@@ -38,11 +38,18 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
     private lateinit var userImageUri: Uri
     private lateinit var photoFile: File
     companion object {
-        val GALLERY = 1
+        const val GALLERY = 1
     }
 
-    //list stuff
     private lateinit var profileItems: ListView
+    private lateinit var photoDialog: Dialog
+
+
+
+
+
+    private val calendar = Calendar.getInstance()
+
     private val profileDescription = arrayOf(
         "Username", "Name", "DOB", "Gender", "Password", "Email"
     )
@@ -51,15 +58,12 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "username", "Bob", "Feb 3, 2003", "Male", "*******", "email"
     )
 
-    //viewModel + database
     private lateinit var viewModel: ProfileViewModel
     private lateinit var profileAdapter : ProfileAdapter
     private lateinit var database: DatabaseReference
     private lateinit var user: FirebaseUser
-    private lateinit var storageReference : StorageReference
 
-    private val calendar = Calendar.getInstance()
-    private lateinit var photoDialog: Dialog
+    private lateinit var storageReference : StorageReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,30 +79,26 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         val email = user.email
         val photoUrl = user.photoUrl
 
-        val uid = user?.uid
+        val uid = user.uid
         println("DEBUG: uid $uid")
         println("DEBUG: email $email")
         println("DEBUG: photoUrl $photoUrl")
 
         //adds attribute to database
-        if (uid != null) {
-          //  database = FirebaseDatabase.getInstance().getReference("Users")
-          //  database.child(uid).child("anotherAttribute").setValue("helloThere")
-        }
+        //  database = FirebaseDatabase.getInstance().getReference("Users")
+        //  database.child(uid).child("anotherAttribute").setValue("helloThere")
 
         //change username placeholder (use firebase username)
-        if (uid != null) {
-            database = FirebaseDatabase.getInstance().getReference("Users")
-            database.child(uid).get().addOnSuccessListener {
-                if (it.exists()) {
-                    //load username value
-                    var username = it.child("username").value.toString()
-                    println("DEBUG: username is $username")
-                    //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
-                    userInfo[0] = username
-                    profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
-                    profileItems?.adapter = profileAdapter
-                }
+        database = FirebaseDatabase.getInstance().getReference("Users")
+        database.child(uid).get().addOnSuccessListener {
+            if (it.exists()) {
+                //load username value
+                val username = it.child("username").value.toString()
+                println("DEBUG: username is $username")
+                //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
+                userInfo[0] = username
+                profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                profileItems.adapter = profileAdapter
             }
         }
 
@@ -113,7 +113,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //setup list adapter for display
         user = FirebaseAuth.getInstance().currentUser!!
         profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
-        profileItems?.adapter = profileAdapter
+        profileItems.adapter = profileAdapter
 
         //load user photo from database
         val uid = user.uid
@@ -129,16 +129,13 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
                 // get uid
-                val uid = user.uid
                 uploadPhoto(uid) // upload photo to database storage based on user id
             }
         }
 
         //work in progress
-        profileItems?.setOnItemClickListener(){adapterView, view, position, id ->
-            val itemAtPos = adapterView.getItemAtPosition(position)
-
-            when (itemAtPos) {
+        profileItems.setOnItemClickListener { adapterView, _, position, _ ->
+            when (adapterView.getItemAtPosition(position)) {
                 "Username" -> {
                     val newDialog  = Dialog()
                     val bundle = Bundle()
@@ -215,7 +212,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             storageReference = FirebaseStorage.getInstance().getReference("UserPhotos/$uid")
             storageReference.putFile(userImageUri).addOnSuccessListener {
                 Toast.makeText(this, "Photo saved", Toast.LENGTH_SHORT).show()
-                loadPhoto(uid) //update the image used for userPhoto
+                loadPhoto(uid)
             }.addOnFailureListener {
                 Toast.makeText(this, "Photo fail to save", Toast.LENGTH_SHORT).show()
             }
@@ -244,7 +241,9 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == GALLERY && resultCode == RESULT_OK) {
+            //display the photo that was selected, could also call database, but inefficient because takes up more time
             userImageUri = data?.data!!
+          //  userPhoto.setImageURI(data?.data)
             // get uid
             val uid = user.uid
             uploadPhoto(uid) // upload photo to database storage based on user id
@@ -259,6 +258,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             || ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA), 0)
         }
+
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, userImageUri)
         cameraResult.launch(intent)
@@ -316,10 +316,10 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     Toast.makeText(applicationContext,"Invalid email",Toast.LENGTH_SHORT).show()
                 }
             } else if (dialogID == 3) { //Password
-                var newPass = dialog.findViewById<EditText>(R.id.password)
-                var cnewPass = dialog.findViewById<EditText>(R.id.confirmPassword)
-                var newPassString = newPass.text.toString()
-                var newcPassString = cnewPass.text.toString()
+                val newPass = dialog.findViewById<EditText>(R.id.password)
+                val cnewPass = dialog.findViewById<EditText>(R.id.confirmPassword)
+                val newPassString = newPass.text.toString()
+                val newcPassString = cnewPass.text.toString()
 
                 //check if new pass is acceptable
                 if (newPassString == newcPassString && newPassString.length > 5) {
@@ -338,26 +338,23 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     Toast.makeText(applicationContext,"Invalid length or password do not match",Toast.LENGTH_SHORT).show()
                 }
             } else if (dialogID == 4) { //username
-                var username = dialog.findViewById<EditText>(R.id.Edit)
-                var usernameString = username.text.toString()
-
+                val username = dialog.findViewById<EditText>(R.id.Edit)
+                val usernameString = username.text.toString()
 
                 if (usernameString.length > 5) {
                     //update username
-                    var uid = user.uid
-                    if (uid != null) {
-                        database = FirebaseDatabase.getInstance().getReference("Users")
-                        database.child(uid).child("username").setValue(usernameString)
-                        userInfo[0] = usernameString
-                        //update view for adapter
-                        profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
-                        profileAdapter.notifyDataSetChanged()
-                        profileItems.adapter = profileAdapter
+                    val uid = user.uid
+                    database = FirebaseDatabase.getInstance().getReference("Users")
+                    database.child(uid).child("username").setValue(usernameString)
+                    userInfo[0] = usernameString
+                    //update view for adapter
+                    profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                    profileAdapter.notifyDataSetChanged()
+                    profileItems.adapter = profileAdapter
 
-                        //dismiss dialog and let user know
-                        Toast.makeText(applicationContext,"username successfully updated",Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                    }
+                    //dismiss dialog and let user know
+                    Toast.makeText(applicationContext,"username successfully updated",Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
                 } else {
                     Toast.makeText(applicationContext,"username was not updated",Toast.LENGTH_SHORT).show()
                 }
@@ -371,7 +368,8 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
     //cancel for dialog
     fun cancelButton(view: View) {
         //get dialog info
-        val dialog = viewModel.getDialog()
+        var dialog = viewModel.getDialog()
         dialog.dismiss()
     }
+
 }

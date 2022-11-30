@@ -111,8 +111,6 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 builder.setView(view)
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
             }
         }
 
