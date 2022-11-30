@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 var dialogID = -1
 private lateinit var dialog: AlertDialog
 
-class ProfileViewModel(): ViewModel() {
+class ProfileViewModel : ViewModel() {
 
     fun setDialogID(id: Int) {
         dialogID = id
