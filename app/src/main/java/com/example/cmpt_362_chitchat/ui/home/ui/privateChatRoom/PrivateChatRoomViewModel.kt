@@ -20,13 +20,13 @@ class PrivateChatRoomViewModel : ViewModel() {
             .child("ChatRooms")
             .addValueEventListener(object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val newChatrooms = ArrayList<String>()
+                    val newChatRoomIDs = ArrayList<String>()
 
                     for (snap in snapshot.children) {
-                        newChatrooms.add(snap.key.toString())
+                        newChatRoomIDs.add(snap.key.toString())
                     }
 
-                    updateChatrooms(newChatrooms)
+                    updateChatRoomIDs(newChatRoomIDs)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -34,13 +34,34 @@ class PrivateChatRoomViewModel : ViewModel() {
             })
     }
 
-    val chatrooms = MutableLiveData(ArrayList<String>())
+    val chatRoomIDs = MutableLiveData(ArrayList<String>())
+    val chatRoomNames = MutableLiveData(ArrayList<String>())
 
-    fun updateChatrooms(newChatrooms: ArrayList<String>) {
-        chatrooms.value = newChatrooms
+    private fun updateChatRoomIDs(newChatRoomIDs: ArrayList<String>) {
+        val newChatRoomNames = ArrayList<String>()
+        // Get names from ChatRooms database
+        FirebaseDatabase.getInstance().reference
+            .child("ChatRooms")
+            .child("Private")
+            .get().addOnSuccessListener {
+                for (chatRoomId in newChatRoomIDs) {
+                    newChatRoomNames.add(
+                        it
+                            .child(chatRoomId)
+                            .child("ChatRoomName")
+                            .value.toString()
+                    )
+                }
+
+                // Update only after retrieving task from database is complete
+                chatRoomIDs.value = newChatRoomIDs
+                chatRoomNames.value = newChatRoomNames
+
+            }
     }
 
     fun getChatroom(index: Int) : String {
-        return chatrooms.value?.get(index) ?: ""
+        return chatRoomIDs.value?.get(index) ?: ""
     }
+
 }
