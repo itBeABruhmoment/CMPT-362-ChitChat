@@ -23,8 +23,12 @@
     <string name="sent_message">Sent message</string>
     <string name="receive_message">Receive message</string>
     <string name="delete_chatroom">Delete ChatRoom</string>
-    <string name="video_call">Video call</string>
-    <string name="users_list">Users list</string>
     <string name="enter_chat_room_name">Enter chat room name</string>
+    <string name="video_call">Video call</string>
+
+    <!-- friends activity related -->
+    <string name="view_profile">Profile</string>
+    <string name="unfriend_user">Unfriend</string>
+    <string name="users_list">Users list</string>
     <string name="add_friends">Add friends</string>
 </resources>
