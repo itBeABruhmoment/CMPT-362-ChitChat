@@ -16,13 +16,15 @@ class PublicChatRoomViewModel : ViewModel() {
             .child("Public")
             .addValueEventListener(object: ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val newChatrooms = ArrayList<String>()
+                    val newChatRoomIDs = ArrayList<String>()
+                    val newChatRoomNames = ArrayList<String>()
 
                     for(snap in snapshot.children) {
-                        newChatrooms.add(snap.key.toString())
+                        newChatRoomIDs.add(snap.key.toString())
+                        newChatRoomNames.add(snap.child("ChatRoomName").value.toString())
                     }
 
-                    updateChatrooms(newChatrooms)
+                    updateChatRoomIDs(newChatRoomIDs, newChatRoomNames)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -30,13 +32,15 @@ class PublicChatRoomViewModel : ViewModel() {
             })
     }
 
-    val chatrooms = MutableLiveData(ArrayList<String>())
+    val chatRoomIDs = MutableLiveData(ArrayList<String>())
+    val chatRoomNames = MutableLiveData(ArrayList<String>())
 
-    fun updateChatrooms(newChatrooms: ArrayList<String>) {
-        chatrooms.value = newChatrooms
+    fun updateChatRoomIDs(newChatRoomIDs: ArrayList<String>, newChatRoomNames: ArrayList<String>) {
+        chatRoomIDs.value = newChatRoomIDs
+        chatRoomNames.value = newChatRoomNames
     }
 
-    fun getChatroom(index: Int) : String {
-        return chatrooms.value?.get(index) ?: ""
+    fun getChatroomID(index: Int) : String {
+        return chatRoomIDs.value?.get(index) ?: ""
     }
 }

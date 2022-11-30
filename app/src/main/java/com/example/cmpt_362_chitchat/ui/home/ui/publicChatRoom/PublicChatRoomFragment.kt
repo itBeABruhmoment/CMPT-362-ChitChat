@@ -34,10 +34,10 @@ class PublicChatRoomFragment : Fragment() {
         val chatroomsAdapter = ChatRoomListAdapter(
             this.requireContext(),
             android.R.layout.simple_list_item_2,
-            publicChatRoomViewModel.chatrooms.value!!
+            publicChatRoomViewModel.chatRoomNames.value!!
         )
 
-        publicChatRoomViewModel.chatrooms.observe(viewLifecycleOwner) { it ->
+        publicChatRoomViewModel.chatRoomNames.observe(viewLifecycleOwner) { it ->
             chatroomsAdapter.replace(it)
             chatroomsAdapter.notifyDataSetChanged()
         }
@@ -45,8 +45,9 @@ class PublicChatRoomFragment : Fragment() {
         chatroomsList.adapter = chatroomsAdapter
         chatroomsList.setOnItemClickListener { parent, view, position, id ->
             val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
-            intent.putExtra("chatRoomId", publicChatRoomViewModel.getChatroom(position))
+            intent.putExtra("chatRoomId", publicChatRoomViewModel.getChatroomID(position))
             intent.putExtra("chatRoomType", "Public")
+            intent.putExtra("chatRoomName", publicChatRoomViewModel.chatRoomNames.value!![position])
             startActivity(intent)
         }
 

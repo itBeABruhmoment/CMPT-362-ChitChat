@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -28,20 +29,28 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import java.io.File
 import java.util.*
 
 
 class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener {
+    //camera stuff
+    private lateinit var cameraResult: ActivityResultLauncher<Intent>
+    private lateinit var userPhoto: ImageView
+    private lateinit var userImageUri: Uri
+    private lateinit var photoFile: File
+    companion object {
+        const val GALLERY = 1
+    }
+
     private lateinit var profileItems: ListView
     private lateinit var photoDialog: Dialog
 
 
-    private lateinit var cameraResult: ActivityResultLauncher<Intent>
-    private lateinit var userPhoto: ImageView
-    private lateinit var userImageUri: Uri
-    private lateinit var currentPhoto: File
-    val GALLERY = 1
+
+
 
     private val calendar = Calendar.getInstance()
 
@@ -53,13 +62,12 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "username", "Bob", "Feb 3, 2003", "Male", "*******", "email"
     )
 
-
     private lateinit var viewModel: ProfileViewModel
     private lateinit var profileAdapter : ProfileAdapter
     private lateinit var database: DatabaseReference
     private lateinit var user: FirebaseUser
 
-
+    private lateinit var storageReference : StorageReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,41 +75,38 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         profileItems = findViewById(R.id.profileItems)
 
         //get access to viewModel for user profile
-        viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+        viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
 
         //get data from firebase
         user = FirebaseAuth.getInstance().currentUser!!
         // Name, email address, and profile photo Url
-        val name = user?.displayName
-        val email = user?.email
-        val photoUrl = user?.photoUrl
+        val email = user.email
+        val photoUrl = user.photoUrl
 
-        // Check if user's email is verified
-        // The user's ID, unique to the Firebase project. Do NOT use this value to
-        // authenticate with your backend server, if you have one. Use
-        // FirebaseUser.getIdToken() instead.
-        val uid = user?.uid
-        println("DEBUG: name $name")
+        val uid = user.uid
         println("DEBUG: uid $uid")
         println("DEBUG: email $email")
         println("DEBUG: photoUrl $photoUrl")
 
-        //loads username
-        if (uid != null) {
-            database = FirebaseDatabase.getInstance().getReference("Users")
-            database.child(uid).get().addOnSuccessListener {
-                if (it.exists()) {
-                    //load username value
-                    var username = it.child("username").value.toString()
-                    println("DEBUG: username is $username")
-                    //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
-                    userInfo[0] = username
-                    profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
-                    profileItems?.adapter = profileAdapter
-                }
+        //adds attribute to database
+        //  database = FirebaseDatabase.getInstance().getReference("Users")
+        //  database.child(uid).child("anotherAttribute").setValue("helloThere")
+
+        //change username placeholder (use firebase username)
+        database = FirebaseDatabase.getInstance().getReference("Users")
+        database.child(uid).get().addOnSuccessListener {
+            if (it.exists()) {
+                //load username value
+                val username = it.child("username").value.toString()
+                println("DEBUG: username is $username")
+                //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
+                userInfo[0] = username
+                profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                profileItems.adapter = profileAdapter
             }
         }
 
+        //change email placeholder (use firebase email)
         if (email != null) {
             userInfo[5] = email
         }
@@ -128,24 +133,29 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //setup list adapter for display
         user = FirebaseAuth.getInstance().currentUser!!
         profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
-        profileItems?.adapter = profileAdapter
+        profileItems.adapter = profileAdapter
 
-        //Camera code
+        //load user photo from database
+        val uid = user.uid
+        loadPhoto(uid)
+
+        //Camera code from lecture
         userPhoto = findViewById(R.id.userPhoto)
-        currentPhoto = File(getExternalFilesDir(null), "userPhoto_img.jpg")
-        userImageUri = FileProvider.getUriForFile(this, "com.example.cmpt_362_chitchat", currentPhoto)
+        photoFile = File(getExternalFilesDir(null), "userPhoto_img.jpg")
+        userImageUri = FileProvider.getUriForFile(this, "com.example.cmpt_362_chitchat", photoFile)
+
+        //camera photo success
         cameraResult = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-
+                // get uid
+                uploadPhoto(uid) // upload photo to database storage based on user id
             }
         }
 
-        //data not saved atm
-        profileItems?.setOnItemClickListener(){adapterView, view, position, id ->
-            val itemAtPos = adapterView.getItemAtPosition(position)
-
-            when (itemAtPos) {
+        //work in progress
+        profileItems.setOnItemClickListener { adapterView, _, position, _ ->
+            when (adapterView.getItemAtPosition(position)) {
                 "Username" -> {
                     val newDialog  = Dialog()
                     val bundle = Bundle()
@@ -195,11 +205,40 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         }
     }
 
-
-
     override fun onResume() {
         super.onResume()
         println("DEBUG: RESUMED")
+    }
+
+    //load photo from database
+    private fun loadPhoto(uid : String) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("UserPhotos/$uid")
+        //create a temp location for photo
+        val localFile = File.createTempFile("tempImage", "jpg")
+        storageRef.getFile(localFile).addOnSuccessListener {
+            val bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
+            //update userPhoto
+            userPhoto.setImageBitmap(bitmap)
+            println("DEBUG: photo successfully loaded")
+        }.addOnFailureListener {
+            println("DEBUG: photo was not able to load")
+        }
+    }
+
+    //upload image to database
+    private fun uploadPhoto(uid : String) {
+        if (userImageUri != null) { // safety check
+            //add image to specify firebase storage location
+            storageReference = FirebaseStorage.getInstance().getReference("UserPhotos/$uid")
+            storageReference.putFile(userImageUri).addOnSuccessListener {
+                Toast.makeText(this, "Photo saved", Toast.LENGTH_SHORT).show()
+                loadPhoto(uid)
+            }.addOnFailureListener {
+                Toast.makeText(this, "Photo fail to save", Toast.LENGTH_SHORT).show()
+            }
+        } else { // shouldn't happen
+            Toast.makeText(this, "Unknown error has occurred, Photo didn't get uploaded to database storage", Toast.LENGTH_SHORT).show()
+        }
     }
 
     //dialog for selecting a new picture
@@ -216,6 +255,19 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, GALLERY)
         photoDialog.dismiss()
+    }
+
+    //gallery photo request
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == GALLERY && resultCode == RESULT_OK) {
+            //display the photo that was selected, could also call database, but inefficient because takes up more time
+            userImageUri = data?.data!!
+          //  userPhoto.setImageURI(data?.data)
+            // get uid
+            val uid = user.uid
+            uploadPhoto(uid) // upload photo to database storage based on user id
+        }
     }
 
     //open camera for photo
@@ -247,6 +299,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
     //for updating user data
     fun saveUserData(view: View) {
+        user = FirebaseAuth.getInstance().currentUser!!
         //get dialog info
         var dialogID = viewModel.getDialogID()
         var dialog = viewModel.getDialog()
@@ -283,10 +336,10 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     Toast.makeText(applicationContext,"Invalid email",Toast.LENGTH_SHORT).show()
                 }
             } else if (dialogID == 3) { //Password
-                var newPass = dialog.findViewById<EditText>(R.id.password)
-                var cnewPass = dialog.findViewById<EditText>(R.id.confirmPassword)
-                var newPassString = newPass.text.toString()
-                var newcPassString = cnewPass.text.toString()
+                val newPass = dialog.findViewById<EditText>(R.id.password)
+                val cnewPass = dialog.findViewById<EditText>(R.id.confirmPassword)
+                val newPassString = newPass.text.toString()
+                val newcPassString = cnewPass.text.toString()
 
                 //check if new pass is acceptable
                 if (newPassString == newcPassString && newPassString.length > 5) {
@@ -305,33 +358,29 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     Toast.makeText(applicationContext,"Invalid length or password do not match",Toast.LENGTH_SHORT).show()
                 }
             } else if (dialogID == 4) { //username
-                var username = dialog.findViewById<EditText>(R.id.Edit)
-                var usernameString = username.text.toString()
-
+                val username = dialog.findViewById<EditText>(R.id.Edit)
+                val usernameString = username.text.toString()
 
                 if (usernameString.length > 5) {
                     //update username
-                    var uid = user.uid
-                    if (uid != null) {
-                        database = FirebaseDatabase.getInstance().getReference("Users")
-                        database.child(uid).child("username").setValue(usernameString)
-                        userInfo[0] = usernameString
-                        //update view for adapter
-                        profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
-                        profileAdapter.notifyDataSetChanged()
-                        profileItems.adapter = profileAdapter
+                    val uid = user.uid
+                    database = FirebaseDatabase.getInstance().getReference("Users")
+                    database.child(uid).child("username").setValue(usernameString)
+                    userInfo[0] = usernameString
+                    //update view for adapter
+                    profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+                    profileAdapter.notifyDataSetChanged()
+                    profileItems.adapter = profileAdapter
 
-                        //dismiss dialog and let user know
-                        Toast.makeText(applicationContext,"username successfully updated",Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                    }
+                    //dismiss dialog and let user know
+                    Toast.makeText(applicationContext,"username successfully updated",Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
                 } else {
                     Toast.makeText(applicationContext,"username was not updated",Toast.LENGTH_SHORT).show()
                 }
-
-
             }
         } else {
+            //Note this sometimes happen, no clue as to why
             println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
         }
     }

@@ -80,10 +80,13 @@ class NewChatRoomFragment : Fragment() {
         }
         chatroomTypeSpinner.adapter = chatroomTypeAdapter
 
+        val chatRoomNameEditText: EditText = binding.chatRoomName
+
         val newChatroomButton: Button = binding.buttonNewChatroom
         newChatroomButton.setOnClickListener {
             val newChatRoomId = UUID.randomUUID().toString()
             val chatRoomType = chatroomTypeSpinner.selectedItem.toString()
+            val chatRoomName = chatRoomNameEditText.text.toString()
 
             database
                 .child("ChatRooms")
@@ -91,6 +94,13 @@ class NewChatRoomFragment : Fragment() {
                 .child(newChatRoomId)
                 .child("ownerId")
                 .setValue(auth.currentUser?.uid)
+
+            database
+                .child("ChatRooms")
+                .child(chatRoomType)
+                .child(newChatRoomId)
+                .child("ChatRoomName")
+                .setValue(chatRoomName)
 
             if (chatRoomType == "Private") {
                 val participants = friendIds.toCollection(ArrayList())
@@ -108,6 +118,7 @@ class NewChatRoomFragment : Fragment() {
             val intent = Intent(requireActivity(), ChatRoomActivity::class.java)
             intent.putExtra("chatRoomId", newChatRoomId)
             intent.putExtra("chatRoomType", chatRoomType)
+            intent.putExtra("chatRoomName", chatRoomName)
             startActivity(intent)
         }
 
