@@ -3,48 +3,33 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/genderTitle"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:id="@+id/dyn_layout"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop = "10dp"
-        android:layout_marginBottom = "10dp"
-        android:text = "Please select your gender"
-        android:textSize = "24dp"
-        android:gravity="center"
-        />
+        android:orientation="horizontal"
+        android:padding="10dip"
+        >
 
-    <RadioGroup
-        android:id="@+id/genderRadio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp">
-
-        <RadioButton
-            android:id="@+id/femaleRadio"
+        <Button
+            android:id="@+id/saveButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Female"
-            android:layout_gravity="center"
+            android:text="Save"
+            android:onClick="saveUserData"
+            android:layout_marginRight="10dp"
+            android:layout_weight="0.1"
             />
 
-        <RadioButton
-            android:id="@+id/maleRadio"
+        <Button
+            android:id="@+id/cancelButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Male"
-            android:layout_gravity="center"
-        />
+            android:onClick="cancelButton"
+            android:layout_marginLeft="10dp"
+            android:text="Cancel"
+            android:layout_weight="0.1"/>
 
-        <RadioButton
-            android:id="@+id/otherRadio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Other" />
-
-    </RadioGroup>
+    </LinearLayout>
 
 </LinearLayout>

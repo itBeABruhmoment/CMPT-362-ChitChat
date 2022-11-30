@@ -16,6 +16,7 @@ import com.google.firebase.ktx.Firebase
 
 
 
+
 class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     companion object {
         const val DIALOG_KEY = "DIALOG"
@@ -27,6 +28,10 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         const val PHOTO_DIALOG = 6
         const val EMAIL_DIALOG = 7
     }
+
+    private val genderOptions = arrayOf(
+        "Female", "Male", "Other"
+    )
 
     private lateinit var profileEditText : EditText
     private lateinit var title: TextView
@@ -64,9 +69,8 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 emailEditText = view.findViewById(R.id.Edit)
-                title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
-                title.text = "New Email"
+                emailEditText.hint = "New email"
                 viewModel.setDialogID(dialogID)
             }
 
@@ -76,9 +80,8 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 profileEditText = view.findViewById(R.id.Edit)
-                title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
-                title.text = "New Username"
+                profileEditText.hint = "New username"
                 viewModel.setDialogID(dialogID)
             }
 
@@ -88,11 +91,9 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 profileEditText = view.findViewById(R.id.Edit)
-                title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
-                title.text = "New name"
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
+                profileEditText.hint = "New name"
+                viewModel.setDialogID(dialogID)
             }
 
             GENDER_DIALOG -> {
@@ -100,9 +101,14 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     R.layout.fragment_dialog_profile_gender,
                     null
                 )
+                viewModel.setGender("") //clean viewModel
                 builder.setView(view)
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
+                builder.setTitle("Please select your gender")
+                builder.setSingleChoiceItems(genderOptions, -1,
+                    DialogInterface.OnClickListener { dialog, item ->
+                        viewModel.setGender(genderOptions.get(item))
+                    })
+                viewModel.setDialogID(dialogID)
             }
 
             PASSWORD_DIALOG -> {
