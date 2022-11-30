@@ -1,13 +1,9 @@
 package com.example.cmpt_362_chitchat.ui.profile
 
-
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.text.TextUtils
-import android.util.Patterns
-import android.view.View
 import android.widget.*
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +13,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+
 
 
 class Dialog : DialogFragment(), DialogInterface.OnClickListener {
@@ -30,7 +27,6 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         const val PHOTO_DIALOG = 6
         const val EMAIL_DIALOG = 7
     }
-
 
     private lateinit var profileEditText : EditText
     private lateinit var title: TextView
@@ -47,6 +43,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         //access to view Model
         viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
         user = Firebase.auth
+
         //create dialogs
         when (dialogID) {
             PROFILE_STRING_DIALOG -> {
@@ -123,8 +120,6 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 builder.setView(view)
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
             }
         }
 
@@ -133,23 +128,8 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         return dialog
     }
 
-    //not done
+    //not used
     override fun onClick(dialog: DialogInterface?, which: Int) {
-        //determine which dialog is being displayed
-        val dialogID = arguments?.getInt(DIALOG_KEY)
-
-        if (which == DialogInterface.BUTTON_POSITIVE) {
-
-            //firebase connection
-            val user = FirebaseAuth.getInstance().currentUser
-            if (user != null) {
-
-            } else {
-                println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
-            }
-        } else if (which ==DialogInterface.BUTTON_NEGATIVE) {
-            println("DEBUG: NEGATIVE")
-        }
     }
 
 

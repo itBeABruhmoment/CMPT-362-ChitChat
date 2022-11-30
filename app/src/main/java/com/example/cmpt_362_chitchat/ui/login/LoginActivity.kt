@@ -15,7 +15,6 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.cmpt_362_chitchat.databinding.ActivityLoginBinding
-
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.home.HomeActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -94,6 +93,8 @@ class LoginActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK)
 
             //Complete and destroy login activity once successful
+            // was causing problems
+            //finish()
 
         })
 

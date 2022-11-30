@@ -2,6 +2,7 @@ package com.example.cmpt_362_chitchat.ui.chatRoom
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.EditorInfo
@@ -17,6 +18,11 @@ import com.example.cmpt_362_chitchat.data.Message
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
+import org.jitsi.meet.sdk.JitsiMeet
+import org.jitsi.meet.sdk.JitsiMeetActivity
+import org.jitsi.meet.sdk.JitsiMeetConferenceOptions
+import java.net.MalformedURLException
+import java.net.URL
 
 class ChatRoomActivity: AppCompatActivity() {
 
@@ -35,9 +41,10 @@ class ChatRoomActivity: AppCompatActivity() {
     private lateinit var chatRoomViewModel: ChatRoomViewModel
 
     private lateinit var sendUID: String
-    private lateinit var username: String
     private lateinit var chatRoom: String
     private lateinit var chatRoomType: String
+    private lateinit var chatRoomName: String
+    private lateinit var username: String
 
     private var currentUserIsParticipant = false
 
@@ -46,7 +53,10 @@ class ChatRoomActivity: AppCompatActivity() {
         setContentView(R.layout.activity_chatroom)
         sharedPreferences = getSharedPreferences("sharedPreferences", MODE_PRIVATE)
 
-        supportActionBar?.title = "Sample chat room"
+        database = FirebaseDatabase.getInstance().reference
+
+        chatRoomName = intent.getStringExtra("chatRoomName").toString()
+        supportActionBar?.title = chatRoomName
 
         username = sharedPreferences.getString("username", "").toString()
         sendUID = Firebase.auth.currentUser?.uid.toString()
@@ -69,8 +79,6 @@ class ChatRoomActivity: AppCompatActivity() {
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
-
-        database = FirebaseDatabase.getInstance().reference
 
         messageListener = database
             .child("ChatRooms")
@@ -119,6 +127,32 @@ class ChatRoomActivity: AppCompatActivity() {
             messageBox.setText("")
         }
 
+        // Initialize video call servcer URL
+        try {
+            val serverURL = URL("https://meet.jit.si")
+            val defaultOptions = JitsiMeetConferenceOptions.Builder()
+                .setServerURL(serverURL)
+                .setWelcomePageEnabled(false)
+                .build()
+            JitsiMeet.setDefaultConferenceOptions(defaultOptions)
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
+        }
+
+    }
+
+    private fun getUserName() {
+        database
+            .child("Users")
+            .child(sendUID)
+            .child("username")
+            .get()
+            .addOnSuccessListener {
+                username = it.value.toString()
+            }
+            .addOnFailureListener {
+                Log.e("firebase", "Error getting data", it)
+            }
     }
 
     override fun onDestroy() {
@@ -145,6 +179,10 @@ class ChatRoomActivity: AppCompatActivity() {
         when (item.itemId) {
             R.id.delete_chat_room -> {
                 deleteChatRoom()
+                return true
+            }
+            R.id.video_call -> {
+                videoCall()
                 return true
             }
         }
@@ -188,4 +226,13 @@ class ChatRoomActivity: AppCompatActivity() {
                 }
             })
     }
+
+    private fun videoCall() {
+        val options:JitsiMeetConferenceOptions = JitsiMeetConferenceOptions.Builder()
+            .setRoom(chatRoom)
+            .setWelcomePageEnabled(false)
+            .build()
+        JitsiMeetActivity.launch(this, options)
+    }
+
 }
