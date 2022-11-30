@@ -2,11 +2,13 @@ package com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.databinding.FragmentNewChatRoomBinding
@@ -21,19 +23,25 @@ import java.util.*
 class NewChatRoomFragment : Fragment() {
     companion object {
         val chatroomTypes = arrayOf("Private", "Public")
-        // TODO: get friends from db
-        val friendIds = arrayOf("")
-        val friendsSelected = BooleanArray(friendIds.size) { false }
     }
 
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
+    private lateinit var sharedPreferences: SharedPreferences
 
     private var _binding: FragmentNewChatRoomBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    // TODO: get friends from db, remove hard coded friends list
+    val friendIds = arrayOf("uDlrAFaYukYmbhtgKzgDmndIyPu1")
+    val friendUsernames = arrayOf("User1")
+    var friendsSelected = BooleanArray(friendIds.size) { false }
+
+    private lateinit var userId: String
+    private lateinit var username: String
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +50,9 @@ class NewChatRoomFragment : Fragment() {
     ): View {
         auth = Firebase.auth
         database = FirebaseDatabase.getInstance().reference
+        userId = auth.currentUser?.uid.toString()
+        sharedPreferences = requireContext().getSharedPreferences("sharedPreferences", AppCompatActivity.MODE_PRIVATE)
+        username = sharedPreferences.getString("username", "").toString()
 
         _binding = FragmentNewChatRoomBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -51,7 +62,7 @@ class NewChatRoomFragment : Fragment() {
             val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
             builder.setTitle("Add Friends")
 
-            builder.setMultiChoiceItems(friendIds, friendsSelected) { _, which, isChecked ->
+            builder.setMultiChoiceItems(friendUsernames, friendsSelected) { _, which, isChecked ->
                 friendsSelected[which] = isChecked
             }
 
@@ -74,6 +85,7 @@ class NewChatRoomFragment : Fragment() {
                 if (position == 0) {
                     addFriends.visibility = View.VISIBLE
                 } else {
+                    friendsSelected = BooleanArray(friendIds.size) { false }
                     addFriends.visibility = View.INVISIBLE
                 }
             }
@@ -86,7 +98,26 @@ class NewChatRoomFragment : Fragment() {
         newChatroomButton.setOnClickListener {
             val newChatRoomId = UUID.randomUUID().toString()
             val chatRoomType = chatroomTypeSpinner.selectedItem.toString()
-            val chatRoomName = chatRoomNameEditText.text.toString()
+            var chatRoomName = chatRoomNameEditText.text.toString()
+
+            val participants = ArrayList<String>()
+            participants.add(userId)
+            for ((index, isFriendSelected) in friendsSelected.withIndex()) {
+                if (isFriendSelected) {
+                    participants.add(friendIds[index])
+                }
+            }
+
+            if (chatRoomName == "") {
+                chatRoomName = username
+                for (participant in participants) {
+                    if (participant != userId) {
+                        println("Debug: test ${participants.indexOf(participant)}")
+                        chatRoomName =
+                            "$chatRoomName, ${friendUsernames[participants.indexOf(participant) - 1]}"
+                    }
+                }
+            }
 
             database
                 .child("ChatRooms")
@@ -103,8 +134,6 @@ class NewChatRoomFragment : Fragment() {
                 .setValue(chatRoomName)
 
             if (chatRoomType == "Private") {
-                val participants = friendIds.toCollection(ArrayList())
-                participants.add(auth.currentUser?.uid.toString())
 
                 for (participant in participants) {
                     database.child("Users")

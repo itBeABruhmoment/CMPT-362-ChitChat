@@ -8,6 +8,14 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+
+
+
 
 class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     companion object {
@@ -21,20 +29,25 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         const val EMAIL_DIALOG = 7
     }
 
+    private val genderOptions = arrayOf(
+        "Female", "Male", "Other"
+    )
+
     private lateinit var profileEditText : EditText
     private lateinit var title: TextView
 
     private lateinit var viewModel: ProfileViewModel
 
     private lateinit var emailEditText : EditText
-
+    private lateinit var user: FirebaseAuth
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         lateinit var dialog: Dialog
         val dialogID = arguments?.getInt(DIALOG_KEY)
         val builder = AlertDialog.Builder(requireActivity())
         //access to view Model
-        viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
+        viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+        user = Firebase.auth
 
         //create dialogs
         when (dialogID) {
@@ -47,6 +60,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                 builder.setView(view)
                 builder.setTitle("Change Username")
                 builder.setPositiveButton("SAVE", this)
+                builder.setNegativeButton("CANCEL", this)
             }
 
             EMAIL_DIALOG -> {
@@ -55,9 +69,8 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 emailEditText = view.findViewById(R.id.Edit)
-                title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
-                title.text = "New Email"
+                emailEditText.hint = "New email"
                 viewModel.setDialogID(dialogID)
             }
 
@@ -67,9 +80,8 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 profileEditText = view.findViewById(R.id.Edit)
-                title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
-                title.text = "New Username"
+                profileEditText.hint = "New username"
                 viewModel.setDialogID(dialogID)
             }
 
@@ -79,11 +91,9 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     null
                 )
                 profileEditText = view.findViewById(R.id.Edit)
-                title = view.findViewById(R.id.profileTitle)
                 builder.setView(view)
-                title.text = "New name"
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
+                profileEditText.hint = "New name"
+                viewModel.setDialogID(dialogID)
             }
 
             GENDER_DIALOG -> {
@@ -91,9 +101,14 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                     R.layout.fragment_dialog_profile_gender,
                     null
                 )
+                viewModel.setGender("") //clean viewModel
                 builder.setView(view)
-                builder.setPositiveButton("SAVE", this)
-                builder.setNegativeButton("CANCEL", this)
+                builder.setTitle("Please select your gender")
+                builder.setSingleChoiceItems(genderOptions, -1,
+                    DialogInterface.OnClickListener { dialog, item ->
+                        viewModel.setGender(genderOptions.get(item))
+                    })
+                viewModel.setDialogID(dialogID)
             }
 
             PASSWORD_DIALOG -> {
