@@ -4,6 +4,12 @@
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="prompt_username">Username</string>
+    <string name="prompt_name">Name</string>
+    <string name="prompt_firstname">First Name</string>
+    <string name="prompt_lastname">Last Name</string>
+    <string name="prompt_gender">Gender</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
     <string name="action_sign_in">Login</string>
     <string name="register">Register</string>
     <string name="action_sign_in_short">Sign in</string>
