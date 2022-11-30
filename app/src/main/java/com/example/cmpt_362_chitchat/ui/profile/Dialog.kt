@@ -1,19 +1,13 @@
 package com.example.cmpt_362_chitchat.ui.profile
 
-
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.text.TextUtils
-import android.util.Patterns
-import android.view.View
 import android.widget.*
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
-import com.google.firebase.auth.FirebaseAuth
-
 
 class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     companion object {
@@ -26,7 +20,6 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         const val PHOTO_DIALOG = 6
         const val EMAIL_DIALOG = 7
     }
-
 
     private lateinit var profileEditText : EditText
     private lateinit var title: TextView
@@ -41,7 +34,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         val dialogID = arguments?.getInt(DIALOG_KEY)
         val builder = AlertDialog.Builder(requireActivity())
         //access to view Model
-        viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+        viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
 
         //create dialogs
         when (dialogID) {
@@ -128,23 +121,8 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         return dialog
     }
 
-    //not done
+    //not used
     override fun onClick(dialog: DialogInterface?, which: Int) {
-        //determine which dialog is being displayed
-        val dialogID = arguments?.getInt(DIALOG_KEY)
-
-        if (which == DialogInterface.BUTTON_POSITIVE) {
-
-            //firebase connection
-            val user = FirebaseAuth.getInstance().currentUser
-            if (user != null) {
-
-            } else {
-                println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
-            }
-        } else if (which ==DialogInterface.BUTTON_NEGATIVE) {
-            println("DEBUG: NEGATIVE")
-        }
     }
 
 
