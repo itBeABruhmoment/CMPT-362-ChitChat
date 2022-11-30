@@ -50,9 +50,12 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
 
     }
 
-    public fun addFriendRequest(sender: String, recipient: String): Boolean {
+    public fun addFriendRequest(sender: String, recipient: String): AddFriendRequestResult {
         if(requestExists(recipient)) {
-            return false
+            return AddFriendRequestResult.DUPLICATE_REQUEST
+        }
+        if(friendExists(recipient)) {
+            return AddFriendRequestResult.ALREADY_FRIEND
         }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -84,7 +87,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 Log.i("FriendsActivity", "no key")
             }
         }
-        return true
+        return AddFriendRequestResult.SUCCESS
     }
 
     public fun removeFriendRequest(friendRequest: FriendRequest) {
@@ -166,15 +169,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     private fun requestExists(otherUser: String): Boolean {
         val sentRequests: ArrayList<FriendRequestEntry>? = sentRequests.value
         val receivedRequests: ArrayList<FriendRequestEntry>? = friendsRequests.value
-        val friendsTemp: ArrayList<FriendEntry>? = friends.value
 
-        if(friendsTemp != null) {
-            for(friend: FriendEntry in friendsTemp) {
-                if(friend.uid == otherUser) {
-                    return true
-                }
-            }
-        }
         if(sentRequests != null) {
             for(sentRequest: FriendRequestEntry in sentRequests) {
                 if(sentRequest.request.sender == user.uid
@@ -187,6 +182,18 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             for(receivedRequest: FriendRequestEntry in receivedRequests) {
                 if(receivedRequest.request.sender == otherUser
                     && receivedRequest.request.recipient == user.uid) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    public fun friendExists(otherUser: String): Boolean {
+        val friendsTemp: ArrayList<FriendEntry>? = friends.value
+        if(friendsTemp != null) {
+            for(friend: FriendEntry in friendsTemp) {
+                if(friend.uid == otherUser) {
                     return true
                 }
             }
@@ -425,6 +432,13 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 this.userName = userName
                 this.request = request
             }
+        }
+
+        enum class AddFriendRequestResult {
+            SUCCESS,
+            CANT_VERIFY_NON_DUPLICATE,
+            ALREADY_FRIEND,
+            DUPLICATE_REQUEST
         }
     }
 }
