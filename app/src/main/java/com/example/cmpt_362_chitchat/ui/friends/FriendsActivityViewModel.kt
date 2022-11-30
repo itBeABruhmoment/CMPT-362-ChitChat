@@ -163,10 +163,18 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             }
     }
 
-    fun requestExists(otherUser: String): Boolean {
+    private fun requestExists(otherUser: String): Boolean {
         val sentRequests: ArrayList<FriendRequestEntry>? = sentRequests.value
         val receivedRequests: ArrayList<FriendRequestEntry>? = friendsRequests.value
+        val friendsTemp: ArrayList<FriendEntry>? = friends.value
 
+        if(friendsTemp != null) {
+            for(friend: FriendEntry in friendsTemp) {
+                if(friend.uid == otherUser) {
+                    return true
+                }
+            }
+        }
         if(sentRequests != null) {
             for(sentRequest: FriendRequestEntry in sentRequests) {
                 if(sentRequest.request.sender == user.uid
