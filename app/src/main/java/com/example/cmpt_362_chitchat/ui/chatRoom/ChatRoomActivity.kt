@@ -190,22 +190,6 @@ class ChatRoomActivity: AppCompatActivity() {
     }
 
     private fun deleteChatRoom() {
-        if (chatRoomType == "Private") {
-            database
-                .child("Users")
-                .child(sendUID)
-                .child("ChatRooms")
-                .child(chatRoom)
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        snapshot.ref.removeValue()
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                    }
-                })
-        }
-
         database
             .child("ChatRooms")
             .child(chatRoomType)
@@ -215,6 +199,23 @@ class ChatRoomActivity: AppCompatActivity() {
                     val ownerId = snapshot.child("ownerId").value
                     if (sendUID == ownerId) {
                         snapshot.ref.removeValue()
+
+                        if (chatRoomType == "Private") {
+                            database
+                                .child("Users")
+                                .child(sendUID)
+                                .child("ChatRooms")
+                                .child(chatRoom)
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        snapshot.ref.removeValue()
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                    }
+                                })
+                        }
+
                         finish()
                     } else {
                         Toast.makeText(baseContext, "You don't have permission.",
