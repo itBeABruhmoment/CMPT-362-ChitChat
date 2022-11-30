@@ -372,7 +372,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             } else if (dialogID == 2) { //gender
                 //determine what gender got selected from viewModel
                 val genderSelected = viewModel.returnGender()
-
                 //if user selects an option update to database otherwise do nothing
                 if (genderSelected != "") {
                     database = FirebaseDatabase.getInstance().getReference("Users")
