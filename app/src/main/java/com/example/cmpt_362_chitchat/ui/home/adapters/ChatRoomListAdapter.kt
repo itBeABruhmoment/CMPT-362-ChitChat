@@ -9,7 +9,8 @@ import android.widget.TextView
 class ChatRoomListAdapter(
     val context: Context,
     private var resourceId: Int,
-    private var chatrooms: ArrayList<String>): BaseAdapter()  {
+    private var chatrooms: ArrayList<String>,
+    private var textPreviews: ArrayList<String>): BaseAdapter()  {
 
     override fun getCount(): Int {
         return chatrooms.size
@@ -28,11 +29,17 @@ class ChatRoomListAdapter(
         val chatroomName = view.findViewById<TextView>(android.R.id.text1)
         val chatroomPreview = view.findViewById<TextView>(android.R.id.text2)
         chatroomName.text = chatrooms[index]
-        chatroomPreview.text = "Text preview"
+        if (index < textPreviews.size) {
+            chatroomPreview.text = textPreviews[index]
+        }
         return view
     }
 
-    fun replace(newChatrooms: ArrayList<String>) {
+    fun replaceChatRooms(newChatrooms: ArrayList<String>) {
         chatrooms = newChatrooms
+    }
+
+    fun replaceTextPreviews(newPreviews: ArrayList<String>) {
+        textPreviews = newPreviews
     }
 }

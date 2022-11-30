@@ -2,11 +2,13 @@ package com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom
 
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.databinding.FragmentNewChatRoomBinding
@@ -28,12 +30,15 @@ class NewChatRoomFragment : Fragment() {
 
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
+    private lateinit var sharedPreferences: SharedPreferences
 
     private var _binding: FragmentNewChatRoomBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+
+    private lateinit var username: String
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +47,8 @@ class NewChatRoomFragment : Fragment() {
     ): View {
         auth = Firebase.auth
         database = FirebaseDatabase.getInstance().reference
+        sharedPreferences = requireContext().getSharedPreferences("sharedPreferences", AppCompatActivity.MODE_PRIVATE)
+        username = sharedPreferences.getString("username", "").toString()
 
         _binding = FragmentNewChatRoomBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -86,7 +93,14 @@ class NewChatRoomFragment : Fragment() {
         newChatroomButton.setOnClickListener {
             val newChatRoomId = UUID.randomUUID().toString()
             val chatRoomType = chatroomTypeSpinner.selectedItem.toString()
-            val chatRoomName = chatRoomNameEditText.text.toString()
+            var chatRoomName = chatRoomNameEditText.text.toString()
+            if (chatRoomName == "") {
+                chatRoomName = username
+                // TODO: add friend usernames
+                for (friend in friendIds) {
+                    chatRoomName = "$chatRoomName, $friend"
+                }
+            }
 
             database
                 .child("ChatRooms")
