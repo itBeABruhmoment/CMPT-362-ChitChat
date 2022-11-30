@@ -8,6 +8,13 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+
+
 
 class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     companion object {
@@ -27,14 +34,15 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     private lateinit var viewModel: ProfileViewModel
 
     private lateinit var emailEditText : EditText
-
+    private lateinit var user: FirebaseAuth
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         lateinit var dialog: Dialog
         val dialogID = arguments?.getInt(DIALOG_KEY)
         val builder = AlertDialog.Builder(requireActivity())
         //access to view Model
-        viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
+        viewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+        user = Firebase.auth
 
         //create dialogs
         when (dialogID) {
@@ -47,6 +55,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                 builder.setView(view)
                 builder.setTitle("Change Username")
                 builder.setPositiveButton("SAVE", this)
+                builder.setNegativeButton("CANCEL", this)
             }
 
             EMAIL_DIALOG -> {

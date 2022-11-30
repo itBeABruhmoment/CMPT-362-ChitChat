@@ -15,10 +15,11 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.cmpt_362_chitchat.databinding.ActivityLoginBinding
-
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.home.HomeActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class LoginActivity : AppCompatActivity() {
 
@@ -33,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val username = binding.username
+        val email = binding.username
         val password = binding.password
         val login = binding.login
         val loading = binding.loading
@@ -56,7 +57,7 @@ class LoginActivity : AppCompatActivity() {
             login.isEnabled = loginState.isDataValid
 
             if (loginState.usernameError != null) {
-                username.error = getString(loginState.usernameError)
+                email.error = getString(loginState.usernameError)
             }
             if (loginState.passwordError != null) {
                 password.error = getString(loginState.passwordError)
@@ -72,12 +73,19 @@ class LoginActivity : AppCompatActivity() {
             }
             if (loginResult.success != null) {
                 // TODO: cleanup code
-                auth.signInWithEmailAndPassword(username.text.toString(), password.text.toString()).addOnCompleteListener(this) {
-                    if (it.isSuccessful){
-                        println("Debug: login success")
+                auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString()).addOnCompleteListener(this) {
+                    /*Email Verification
+                    If email is not verified, cannot login. However this would be annoying to have enabled while we are testing the app so it will be disabled
+                    until the app is finished
+                     */
+                    if (it.isSuccessful){// && auth.currentUser?.isEmailVerified == true){
                         intent = Intent(this, HomeActivity::class.java)
+                        setResult(Activity.RESULT_OK)
                         startActivity(intent)
-                    } else{
+                        finish()
+                    }else if(auth.currentUser?.isEmailVerified != true) {
+                        println("DEBUG: EMAIL NOT VERIFIED")
+                    }else{
                         println("DEBUG: LOGIN FAILED")
                     }
                 }
@@ -87,11 +95,12 @@ class LoginActivity : AppCompatActivity() {
             //Complete and destroy login activity once successful
             // was causing problems
             //finish()
+
         })
 
-        username.afterTextChanged {
+        email.afterTextChanged {
             loginViewModel.loginDataChanged(
-                username.text.toString(),
+                email.text.toString(),
                 password.text.toString()
             )
         }
@@ -99,7 +108,7 @@ class LoginActivity : AppCompatActivity() {
         password.apply {
             afterTextChanged {
                 loginViewModel.loginDataChanged(
-                    username.text.toString(),
+                    email.text.toString(),
                     password.text.toString()
                 )
             }
@@ -108,7 +117,7 @@ class LoginActivity : AppCompatActivity() {
                 when (actionId) {
                     EditorInfo.IME_ACTION_DONE ->
                         loginViewModel.login(
-                            username.text.toString(),
+                            email.text.toString(),
                             password.text.toString()
                         )
                 }
@@ -117,9 +126,22 @@ class LoginActivity : AppCompatActivity() {
 
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
-                loginViewModel.login(username.text.toString(), password.text.toString())
+                loginViewModel.login(email.text.toString(), password.text.toString())
             }
         }
+    }
+
+    override fun onResume() {
+        if (Firebase.auth.currentUser != null){
+            println("DEBUG: USER ALREADY SIGNED IN")
+            intent = Intent(this, HomeActivity::class.java)
+            setResult(Activity.RESULT_OK)
+            startActivity(intent)
+            finish()
+        }else{
+            println("DEBUG: NO USER SIGNED IN")
+        }
+        super.onResume()
     }
 
     private fun updateUiWithUser(model: LoggedInUserView) {

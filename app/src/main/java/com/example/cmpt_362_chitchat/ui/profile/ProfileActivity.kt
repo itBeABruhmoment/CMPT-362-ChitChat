@@ -11,6 +11,8 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Patterns
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
@@ -22,8 +24,10 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.friends.FriendsActivity
+import com.example.cmpt_362_chitchat.ui.login.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -108,6 +112,22 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.actionbar_btn, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        if (id == R.id.action_logout){
+            FirebaseAuth.getInstance().signOut()
+            var intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
     override fun onStart() {
         super.onStart()
         //setup list adapter for display

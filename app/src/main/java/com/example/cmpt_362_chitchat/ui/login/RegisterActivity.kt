@@ -4,10 +4,15 @@ import android.accounts.Account
 import android.accounts.AccountManager
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cmpt_362_chitchat.databinding.ActivityRegisterBinding
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
@@ -49,7 +54,14 @@ class RegisterActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this){
             if (it.isSuccessful){
                 println("DEBUG REGISTER SUCCESS: email: $email, password: $password")
+                auth.currentUser?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(username).build())
                 addAccountToDatabase(auth.currentUser?.uid, email, username)
+                auth.currentUser?.sendEmailVerification()?.addOnSuccessListener {
+                    Toast.makeText(this@RegisterActivity, "Verification email sent to ...", Toast.LENGTH_SHORT).show()
+                }?.addOnFailureListener{
+                    Toast.makeText(this@RegisterActivity, "Failed to send email verification to ..", Toast.LENGTH_SHORT).show()
+                }
+                auth.signOut()
                 finish()
             } else {
                 println("REGISTER FAIL")
