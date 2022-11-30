@@ -34,17 +34,11 @@ class PrivateChatRoomFragment : Fragment() {
         val chatroomsAdapter = ChatRoomListAdapter(
             this.requireContext(),
             android.R.layout.simple_list_item_2,
-            privateChatRoomViewModel.chatRoomNames.value!!,
-            privateChatRoomViewModel.chatRoomPreviews.value!!
+            privateChatRoomViewModel.chatRoomNames.value!!
         )
 
-        privateChatRoomViewModel.chatrooms.observe(viewLifecycleOwner) { it ->
-            chatroomsAdapter.replaceChatRooms(it)
-            chatroomsAdapter.notifyDataSetChanged()
-        }
-
-        privateChatRoomViewModel.chatRoomPreviews.observe(viewLifecycleOwner) { it ->
-            chatroomsAdapter.replaceTextPreviews(it)
+        privateChatRoomViewModel.chatRoomNames.observe(viewLifecycleOwner) {
+            chatroomsAdapter.replace(it)
             chatroomsAdapter.notifyDataSetChanged()
         }
 

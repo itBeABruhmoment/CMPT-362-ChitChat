@@ -38,20 +38,20 @@ class ChatRoomViewModel(chatRoom: String, private val chatRoomType: String) : Vi
     }
 
     private fun updateUsernames(participantIds: ArrayList<String>) {
-        val taskList = mutableListOf<Task<DataSnapshot>>()
+        val taskList1 = mutableListOf<Task<DataSnapshot>>()
 
         for (participant in participantIds) {
             val dbTask = database
                 .child("Users")
                 .child(participant)
                 .get()
-            taskList.add(dbTask)
+            taskList1.add(dbTask)
         }
 
-        val resultTask = Tasks.whenAll(taskList)
-        resultTask.addOnCompleteListener {
+        val resultTask1 = Tasks.whenAll(taskList1)
+        resultTask1.addOnCompleteListener {
             val test = HashMap<String, String>()
-            for (task in taskList) {
+            for (task in taskList1) {
                 val snapshotKey: String? = task.result.key
 
                 for (snap in task.result.children) {
