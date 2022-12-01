@@ -1,5 +1,6 @@
 package com.example.cmpt_362_chitchat.data
 
+import android.util.Log
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
@@ -20,15 +21,19 @@ class CombinedQuery {
         ) {
         this.queriesToDo = queriesToDo
         this.onComplete = onComplete
+        Log.d("combined", "${queriesToDo.size} queries")
         for(query: SingularQuery in queriesToDo) {
+            Log.d("combined", "query")
             var task:Task<DataSnapshot> = query.node.get()
 
             val onSuccess = query.onSuccess
             val onFail = query.onFail
             if(onSuccess != null) {
+                Log.d("combined", "add onSuccess")
                 task = task.addOnSuccessListener(CombinedQueryOnSuccess(onSuccess))
             }
             if(onFail != null) {
+                Log.d("combined", "add onFail")
                 task.addOnFailureListener(CombinedQueryOnFail(onFail, query))
             }
         }
@@ -38,6 +43,7 @@ class CombinedQuery {
     @Synchronized
     private fun queryDone() {
         numDone++
+        Log.d("combined", "done $numDone")
         if(numDone == queriesToDo.size) {
             onComplete(failedQueries)
         }
@@ -49,11 +55,11 @@ class CombinedQuery {
     }
 
     private inner class CombinedQueryOnSuccess(
-        var onSuccess: OnSuccessListener<DataSnapshot?>,
+        var onSuccessLis: OnSuccessListener<DataSnapshot?>,
         ) : OnSuccessListener<DataSnapshot?> {
 
         override fun onSuccess(snaphot: DataSnapshot?) {
-            onSuccess(snaphot)
+            onSuccessLis.onSuccess(snaphot)
             queryDone()
         }
     }

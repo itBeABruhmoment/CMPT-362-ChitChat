@@ -5,7 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.cmpt_362_chitchat.data.CombinedQuery
+import com.example.cmpt_362_chitchat.data.SingularQuery
 import com.example.cmpt_362_chitchat.data.model.FriendRequest
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -15,6 +19,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
 import java.lang.IllegalArgumentException
 import java.util.LinkedList
 import java.util.Queue
@@ -217,6 +222,37 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    private fun getUserInfo(
+        users: ArrayList<String>,
+        onComplete: (ArrayList<UserProfile>, Boolean) -> Unit
+    ) {
+        val userInfo: ArrayList<UserProfile> = ArrayList(users.size)
+        val queries: ArrayList<SingularQuery> = ArrayList(users.size)
+        for(i in 0 until users.size) {
+            userInfo.add(UserProfile(""))
+            val query: SingularQuery = SingularQuery(
+                database.child("Users").child(users[i]).child("username"),
+                { dataSnapshot ->
+                    Log.i("FriendsActivity", "got user $i")
+                    val temp: String? = dataSnapshot?.getValue(String::class.java)
+                    if(temp == null) {
+                        Log.i("FriendsActivity", "user null")
+                    } else {
+                        userInfo[i].userName = temp
+                    }
+                },
+                {
+                    Log.i("FriendsActivity", "failed to get user")
+                }
+            )
+            queries.add(query)
+        }
+
+        CombinedQuery(queries) {
+            onComplete(userInfo, it.size != 0)
+        }
+    }
+
 
     private inner class RequestDataPostListener(
         val onComplete: (ArrayList<FriendRequest>, Boolean) -> Unit
@@ -262,16 +298,17 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             for(request: FriendRequest in requests) {
                 profilesToGet.add(request.sender)
             }
-            val queryUsers: GroupedUserQuery = GroupedUserQuery(profilesToGet) { profiles, failed ->
-                if(failed) {
-                    Log.i("FriendsActivity", "failed to get all users")
-                } else {
-                    Log.i("FriendsActivity", "got all users")
+
+            getUserInfo(profilesToGet) { profiles, failed ->
+                if(!failed) {
+                    Log.i("FriendsActivity", "${profiles.size} ####################")
                     val requestEntries: ArrayList<FriendRequestEntry> = ArrayList(profiles.size)
                     for(i in 0 until profiles.size) {
                         requestEntries.add(FriendRequestEntry(profiles[i].userName, requests[i]))
                     }
                     friendsRequests.value = requestEntries
+                } else {
+                    Log.i("FriendsActivity", "failed#################")
                 }
             }
         }
