@@ -89,24 +89,30 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     public fun addFriend(friendRequest: FriendRequest) {
-        getFriendsNode(friendRequest.sender)
-            .child(friendRequest.recipient)
-            .setValue(true)
-            .addOnFailureListener {
-                Log.i(
-                    "FriendsActivity",
-                    "failed to add ${friendRequest.recipient} as friend"
-                )
-            }
+        allowFriendRequest(friendRequest) { allow ->
+            if(allow) {
+                getFriendsNode(friendRequest.sender)
+                    .child(friendRequest.recipient)
+                    .setValue(true)
+                    .addOnFailureListener {
+                        Log.i(
+                            "FriendsActivity",
+                            "failed to add ${friendRequest.recipient} as friend"
+                        )
+                    }
 
-        getFriendsNode(friendRequest.recipient)
-            .child(friendRequest.sender)
-            .setValue(true).addOnFailureListener {
-                Log.i(
-                    "FriendsActivity",
-                    "failed to add ${friendRequest.sender} as friend"
-                )
+                getFriendsNode(friendRequest.recipient)
+                    .child(friendRequest.sender)
+                    .setValue(true).addOnFailureListener {
+                        Log.i(
+                            "FriendsActivity",
+                            "failed to add ${friendRequest.sender} as friend"
+                        )
+                    }
+            } else {
+                Log.i("FriendsActivity", "request not added, redundant")
             }
+        }
     }
 
     public fun removeFriend(friend: String) {
@@ -166,8 +172,47 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         return false
     }
 
-    private fun getFriendRequests(requestsObtainedCallback: (ArrayList<FriendRequest>, Boolean) -> Unit) {
+    private fun allowFriendRequest(attemptToSend: FriendRequest, callBack: (allow: Boolean) -> Unit) {
+        QueryFriendsAndRequests(attemptToSend.sender) { friendsEntries, requestEntries, sentEntries, failed ->
+            if(failed) {
+                callBack(false)
+            } else {
+                // get these conditions
+                var alreadyFriend: Boolean = false
+                var alreadySent: Boolean = false
+                var alreadyBeingAsked: Boolean = false
 
+                // alreadyFriend
+                for(friend: String in friendsEntries) {
+                    if(friend == attemptToSend.recipient) {
+                        alreadyFriend = true
+                        break
+                    }
+                }
+
+                // alreadySent
+                for(request: FriendRequest in sentEntries) {
+                    if(request.recipient == attemptToSend.recipient) {
+                        alreadySent = true
+                        break
+                    }
+                }
+
+                // alreadyBeingAsked
+                for(request: FriendRequest in requestEntries) {
+                    if(request.recipient == attemptToSend.sender) {
+                        alreadyBeingAsked = true
+                        break
+                    }
+                }
+
+                if(alreadyFriend || alreadySent || alreadyBeingAsked) {
+                    callBack(false)
+                } else {
+                    callBack(true)
+                }
+            }
+        }
     }
 
 
@@ -302,6 +347,118 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         override fun onCancelled(error: DatabaseError) {
             Log.i("FriendsActivity", "error with friends data")
             Log.i("FriendsActivity", error.message)
+        }
+    }
+
+    private inner class QueryFriendsAndRequests {
+        private lateinit var uid: String
+        private var friends: ArrayList<String> = ArrayList()
+        private var friendRequests: ArrayList<FriendRequest> = ArrayList()
+        private var sentRequests: ArrayList<FriendRequest> = ArrayList()
+        private lateinit var friendsPostListener: ValueEventListener
+        private lateinit var friendsRequestsPostListener: ValueEventListener
+        private lateinit var sentRequestsPostListener: ValueEventListener
+        private var numQueriesDone: Int = 0
+        private var failed: Boolean = false
+        private lateinit var callBack: (
+            friends: ArrayList<String>,
+            friendRequests: ArrayList<FriendRequest>,
+            sentRequests: ArrayList<FriendRequest>, failed: Boolean
+        ) -> Unit
+
+        constructor(
+            uid: String,
+            callBack: (
+                friends: ArrayList<String>,
+                friendRequests: ArrayList<FriendRequest>,
+                sentRequests: ArrayList<FriendRequest>,
+                failed: Boolean
+            ) -> Unit
+        ) {
+            this.uid = uid
+            this.callBack = callBack
+
+            // define behavior of listeners to put data of nodes into lists
+            friendsPostListener = object : ValueEventListener {
+                override fun onDataChange(friendsNode: DataSnapshot) {
+                    friendsNode.children.forEach {
+                        val temp: String? = it.key
+                        if(temp == null) {
+                            friends.add("")
+                        } else {
+                            friends.add(temp)
+                        }
+                    }
+                    incrementQueriesDone()
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.d("FriendsActivity", databaseError.message)
+                    setFailed()
+                    incrementQueriesDone()
+                }
+            }
+
+            friendsRequestsPostListener = object : ValueEventListener {
+                override fun onDataChange(friendsRequestsNode: DataSnapshot) {
+                    friendsRequestsNode.children.forEach {
+                        val temp: FriendRequest? = it.getValue(FriendRequest::class.java)
+                        if(temp == null) {
+                            friendRequests.add(FriendRequest())
+                        } else {
+                            friendRequests.add(temp)
+                        }
+                    }
+                    incrementQueriesDone()
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.d("FriendsActivity", databaseError.message)
+                    setFailed()
+                    incrementQueriesDone()
+                }
+            }
+
+            sentRequestsPostListener = object : ValueEventListener {
+                override fun onDataChange(sentRequestsNode: DataSnapshot) {
+                    sentRequestsNode.children.forEach {
+                        val temp: FriendRequest? = it.getValue(FriendRequest::class.java)
+                        if(temp == null) {
+                            sentRequests.add(FriendRequest())
+                        } else {
+                            sentRequests.add(temp)
+                        }
+                    }
+                    incrementQueriesDone()
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.d("FriendsActivity", databaseError.message)
+                    setFailed()
+                    incrementQueriesDone()
+                }
+            }
+
+            // add listeners
+            getFriendsNode(uid).addValueEventListener(friendsPostListener)
+            getFriendRequestsNode(uid).addValueEventListener(friendsRequestsPostListener)
+            getSentRequestsNode(uid).addValueEventListener(sentRequestsPostListener)
+        }
+
+        @Synchronized
+        private fun incrementQueriesDone() {
+            numQueriesDone++
+            if(numQueriesDone > 2) {
+                callBack(friends, friendRequests, sentRequests, failed)
+                getFriendsNode(this.uid).removeEventListener(friendsPostListener)
+                getFriendRequestsNode(this.uid).removeEventListener(friendsRequestsPostListener)
+                getSentRequestsNode(this.uid).removeEventListener(sentRequestsPostListener)
+            }
+        }
+
+        @Synchronized
+        private fun setFailed() {
+            failed = true
         }
     }
 
