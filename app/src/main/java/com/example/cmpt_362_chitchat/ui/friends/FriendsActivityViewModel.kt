@@ -16,6 +16,8 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
+import java.util.LinkedList
+import java.util.Queue
 
 class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     // for storing info needed to display users
@@ -347,6 +349,52 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         override fun onCancelled(error: DatabaseError) {
             Log.i("FriendsActivity", "error with friends data")
             Log.i("FriendsActivity", error.message)
+        }
+    }
+
+    // friend request sending has to be done sequentially to ensure no redundant requests are sent
+    private inner class SendFriendRequestQueue {
+        private val sendRequestQueue: Queue<FriendRequest> = LinkedList()
+
+        public fun addRequest(request: FriendRequest) {
+            var length: Int = 0
+            doQueueOperation { queue ->
+                queue.add(request)
+                length = queue.size
+            }
+
+            if(length == 0) {
+                allowFriendRequest(request) { allow ->
+                    if(allow) {
+                        getFriendsNode(request.sender)
+                            .child(request.recipient)
+                            .setValue(true)
+                            .addOnCompleteListener() {
+                                Log.i(
+                                    "FriendsActivity",
+                                    "failed to add ${request.recipient} as friend"
+                                )
+                            }
+
+                        getFriendsNode(request.recipient)
+                            .child(request.sender)
+                            .setValue(true).addOnFailureListener {
+                                Log.i(
+                                    "FriendsActivity",
+                                    "failed to add ${request.sender} as friend"
+                                )
+                            }
+                    }
+                }
+            } // otherwise wait to be processed
+        }
+
+
+
+        // don't interleave operations that edit queue
+        @Synchronized
+        private fun doQueueOperation(run: (queue: Queue<FriendRequest>) -> Unit) {
+            run(sendRequestQueue)
         }
     }
 
