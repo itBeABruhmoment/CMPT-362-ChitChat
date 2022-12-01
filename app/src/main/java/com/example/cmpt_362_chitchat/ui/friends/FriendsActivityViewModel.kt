@@ -16,7 +16,6 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
-import java.util.concurrent.atomic.AtomicBoolean
 
 class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     // for storing info needed to display users
@@ -25,29 +24,13 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     public val sentRequests: MutableLiveData<ArrayList<FriendRequestEntry>> = MutableLiveData()
     public val friends: MutableLiveData<ArrayList<FriendEntry>> = MutableLiveData()
 
-    // prevent possibility of duplicate friend requests
-    //private var receivedRequestsUpToDate: AtomicBoolean = AtomicBoolean(false)
-    //private var sentRequestsUpToDate: AtomicBoolean = AtomicBoolean(false)
-
     init {
         friendsRequests.value = ArrayList()
         friends.value = ArrayList()
 
-        database.child("Users")
-            .child(user.uid)
-            .child(FRIENDS )
-            .addValueEventListener(FriendsPostListener())
-
-        database.child("Users")
-            .child(user.uid)
-            .child(RECIEVED_REQUESTS)
-            .addValueEventListener(FriendsRequestPostListener())
-
-        database.child("Users")
-            .child(user.uid)
-            .child(SENT_REQUESTS)
-            .addValueEventListener(SentRequestPostListener())
-
+        getFriendsNode(user.uid).addValueEventListener(FriendsPostListener())
+        getSentRequestsNode(user.uid).addValueEventListener(FriendsRequestPostListener())
+        getSentRequestsNode(user.uid).addValueEventListener(SentRequestPostListener())
     }
 
     public fun addFriendRequest(sender: String, recipient: String): AddFriendRequestResult {
@@ -59,21 +42,14 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val addLocation: DatabaseReference = database
-                .child("Users")
-                .child(sender)
-                .child(SENT_REQUESTS)
-                .push()
+            val addLocation: DatabaseReference = getSentRequestsNode(sender).push()
 
             val toAdd: FriendRequest = FriendRequest("", sender, recipient)
             val key: String? = addLocation.key
             if(key != null) {
                 toAdd.id = key
                 // to recipient
-                database
-                    .child("Users")
-                    .child(recipient)
-                    .child(RECIEVED_REQUESTS)
+                getFriendRequestsNode(recipient)
                     .child(toAdd.id)
                     .setValue(toAdd)
                     .addOnFailureListener {
@@ -92,10 +68,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
 
     public fun removeFriendRequest(friendRequest: FriendRequest) {
         viewModelScope.launch(Dispatchers.IO) {
-            database
-                .child("Users")
-                .child(friendRequest.sender)
-                .child(SENT_REQUESTS)
+            getSentRequestsNode(friendRequest.sender)
                 .child(friendRequest.id)
                 .removeValue().addOnFailureListener {
                     Log.i(
@@ -104,10 +77,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                     )
                 }
 
-            database
-                .child("Users")
-                .child(friendRequest.recipient)
-                .child(RECIEVED_REQUESTS)
+            getFriendRequestsNode(friendRequest.recipient)
                 .child(friendRequest.id)
                 .removeValue().addOnFailureListener {
                     Log.i(
@@ -119,10 +89,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     public fun addFriend(friendRequest: FriendRequest) {
-        database
-            .child("Users")
-            .child(friendRequest.sender)
-            .child(FRIENDS)
+        getFriendsNode(friendRequest.sender)
             .child(friendRequest.recipient)
             .setValue(true)
             .addOnFailureListener {
@@ -132,10 +99,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 )
             }
 
-        database
-            .child("Users")
-            .child(friendRequest.recipient)
-            .child(FRIENDS)
+        getFriendsNode(friendRequest.recipient)
             .child(friendRequest.sender)
             .setValue(true).addOnFailureListener {
                 Log.i(
@@ -146,24 +110,25 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     public fun removeFriend(friend: String) {
-        database
-            .child("Users")
-            .child(user.uid)
-            .child(FRIENDS)
-            .child(friend)
-            .removeValue().addOnFailureListener() {
-                Log.i(
-                    "FriendsActivity", "failed to add remove friend $friend from user")
-            }
+        getFriendsNode(friend).removeValue().addOnFailureListener() {
+            Log.i("FriendsActivity", "failed to add remove friend $friend from user")
+        }
 
-        database
-            .child("Users")
-            .child(friend)
-            .child(FRIENDS)
-            .child(user.uid)
-            .removeValue().addOnFailureListener() {
-                Log.i("FriendsActivity", "failed to remove user as friend of $friend")
-            }
+        getFriendsNode(user.uid).removeValue().addOnFailureListener() {
+            Log.i("FriendsActivity", "failed to remove user as friend of $friend")
+        }
+    }
+
+    private fun getFriendsNode(uid: String): DatabaseReference {
+        return database.child("Users").child(user.uid).child(FRIENDS)
+    }
+
+    private fun getFriendRequestsNode(uid: String): DatabaseReference {
+        return database.child("Users").child(user.uid).child(RECIEVED_REQUESTS)
+    }
+
+    private fun getSentRequestsNode(uid: String): DatabaseReference {
+        return database.child("Users").child(uid).child(SENT_REQUESTS)
     }
 
     private fun requestExists(otherUser: String): Boolean {
@@ -189,7 +154,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         return false
     }
 
-    public fun friendExists(otherUser: String): Boolean {
+    private fun friendExists(otherUser: String): Boolean {
         val friendsTemp: ArrayList<FriendEntry>? = friends.value
         if(friendsTemp != null) {
             for(friend: FriendEntry in friendsTemp) {
@@ -199,6 +164,10 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             }
         }
         return false
+    }
+
+    private fun getFriendRequests(requestsObtainedCallback: (ArrayList<FriendRequest>, Boolean) -> Unit) {
+
     }
 
 
@@ -346,6 +315,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         private constructor() { }
 
         constructor(users: ArrayList<String>, onComplete: (ArrayList<UserProfile>, Boolean) -> Unit) {
+            Log.i("FriendsActivity", "GroupedUserQuery constructor")
             this.onComplete = onComplete
 
             if(users.size == 0) {
@@ -373,6 +343,11 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                         }
                     }.addOnFailureListener {
                         setFailed()
+                        addReceived(index, UserProfile(""))
+                        Log.i("FriendsActivity", "failed to get username of ${tempUid}")
+                    }.addOnCanceledListener {
+                        setFailed()
+                        addReceived(index, UserProfile(""))
                         Log.i("FriendsActivity", "failed to get username of ${tempUid}")
                     }
                 }
