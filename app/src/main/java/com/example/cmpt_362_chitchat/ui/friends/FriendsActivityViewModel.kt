@@ -44,39 +44,6 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     public fun addFriendRequest(sender: String, recipient: String): AddFriendRequestResult {
         friendRequestQueue.addRequest(sender, recipient)
         return AddFriendRequestResult.SUCCESS
-        /*
-        if(requestExists(recipient)) {
-            return AddFriendRequestResult.DUPLICATE_REQUEST
-        }
-        if(friendExists(recipient)) {
-            return AddFriendRequestResult.ALREADY_FRIEND
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val addLocation: DatabaseReference = getSentRequestsNode(sender).push()
-
-            val toAdd: FriendRequest = FriendRequest("", sender, recipient)
-            val key: String? = addLocation.key
-            if(key != null) {
-                toAdd.id = key
-                // to recipient
-                getFriendRequestsNode(recipient)
-                    .child(toAdd.id)
-                    .setValue(toAdd)
-                    .addOnFailureListener {
-                        Log.i("FriendsActivity", "failed to send request to recipient")
-                    }
-                // to sender
-                addLocation.setValue(toAdd).addOnFailureListener {
-                    Log.i("FriendsActivity", "failed to send request to sender")
-                }
-            } else {
-                Log.i("FriendsActivity", "no key")
-            }
-        }
-        return AddFriendRequestResult.SUCCESS
-
-         */
     }
 
     public fun removeFriendRequest(friendRequest: FriendRequest) {
@@ -102,30 +69,24 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     public fun addFriend(friendRequest: FriendRequest) {
-        allowFriendRequest(friendRequest) { allow ->
-            if(allow) {
-                getFriendsNode(friendRequest.sender)
-                    .child(friendRequest.recipient)
-                    .setValue(true)
-                    .addOnFailureListener {
-                        Log.i(
-                            "FriendsActivity",
-                            "failed to add ${friendRequest.recipient} as friend"
-                        )
-                    }
-
-                getFriendsNode(friendRequest.recipient)
-                    .child(friendRequest.sender)
-                    .setValue(true).addOnFailureListener {
-                        Log.i(
-                            "FriendsActivity",
-                            "failed to add ${friendRequest.sender} as friend"
-                        )
-                    }
-            } else {
-                Log.i("FriendsActivity", "request not added, redundant")
+        getFriendsNode(friendRequest.sender)
+            .child(friendRequest.recipient)
+            .setValue(true)
+            .addOnFailureListener {
+                Log.i(
+                    "FriendsActivity",
+                    "failed to add ${friendRequest.recipient} as friend"
+                )
             }
-        }
+
+        getFriendsNode(friendRequest.recipient)
+            .child(friendRequest.sender)
+            .setValue(true).addOnFailureListener {
+                Log.i(
+                    "FriendsActivity",
+                    "failed to add ${friendRequest.sender} as friend"
+                )
+            }
     }
 
     public fun removeFriend(friend: String) {
@@ -196,29 +157,44 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 isAlreadyFriend = friends != null && friends.hasChild(attemptToSend.recipient)
             },
             {
-                Log.i("Friends", it.message.toString())
+                Log.i("allowFriendRequest()", it.message.toString())
             }
         )
         val querySentRequests: SingularQuery = SingularQuery(
             getSentRequestsNode(attemptToSend.sender),
             { sentRequestsSnapshot ->
-                isAlreadySent = sentRequestsSnapshot != null && sentRequestsSnapshot.hasChild(attemptToSend.id)
+                if(sentRequestsSnapshot != null) {
+                    sentRequestsSnapshot.children.forEach { sentRequestSnapshot ->
+                        val request: FriendRequest? = sentRequestSnapshot.getValue(FriendRequest::class.java)
+                        if(request != null && request.recipient == attemptToSend.recipient) {
+                            isAlreadySent = true;
+                        }
+                    }
+                }
             },
             {
-                Log.i("Friends", it.message.toString())
+                Log.i("allowFriendRequest()", it.message.toString())
             }
         )
         val queryReceivedRequests: SingularQuery = SingularQuery(
             getFriendRequestsNode(attemptToSend.sender),
             { receivedRequestsSnapshot ->
-                isAlreadyBeingAsked = receivedRequestsSnapshot != null && receivedRequestsSnapshot.hasChild(attemptToSend.id)
+                if (receivedRequestsSnapshot != null) {
+                    receivedRequestsSnapshot.children.forEach { receivedRequestSnapshot ->
+                        val request: FriendRequest? = receivedRequestSnapshot.getValue(FriendRequest::class.java)
+                        if(request != null && request.recipient == attemptToSend.sender) {
+                            isAlreadyBeingAsked = true;
+                        }
+                    }
+                }
             },
             {
-                Log.i("Friends", it.message.toString())
+                Log.i("allowFriendRequest()", it.message.toString())
             }
         )
 
         val queries: CombinedQuery = CombinedQuery(arrayListOf(queryFriends, queryReceivedRequests, querySentRequests)) {
+            Log.i("allowFriendRequest()", "$isAlreadyFriend $isAlreadySent $isAlreadyBeingAsked")
             callBack(!isAlreadyFriend && !isAlreadySent && !isAlreadyBeingAsked)
         }
     }
