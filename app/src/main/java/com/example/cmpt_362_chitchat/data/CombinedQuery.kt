@@ -38,6 +38,9 @@ class CombinedQuery {
             }
         }
 
+        if(queriesToDo.size == 0) {
+            onComplete(ArrayList())
+        }
     }
 
     @Synchronized
