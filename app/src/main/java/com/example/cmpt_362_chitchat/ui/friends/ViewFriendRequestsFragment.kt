@@ -52,7 +52,7 @@ class ViewFriendRequestsFragment : Fragment() {
 
         friendRequestsListView = view.findViewById(R.id.fragment_view_friend_requests_list)
         viewModel.friendsRequests.observe(requireActivity()) { requests ->
-            Log.i("FriendsActivity", "friend request live data update")
+            Log.i("FriendsActivity", "friend request live data update ${requests.size}")
             val adapter: FriendRequestArrayAdapter = FriendRequestArrayAdapter(
                 requests,
                 requireActivity(),
@@ -62,6 +62,7 @@ class ViewFriendRequestsFragment : Fragment() {
         }
         sentRequestsListView = view.findViewById(R.id.fragment_view_sent_requests_list)
         viewModel.sentRequests.observe(requireActivity()) { sent ->
+            Log.i("FriendsActivity", "sent request live data update ${sent.size}")
             val adapter: SentRequestArrayAdapter = SentRequestArrayAdapter(
                 sent,
                 requireActivity(),
