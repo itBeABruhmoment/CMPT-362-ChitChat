@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.databinding.FragmentNewChatRoomBinding
 import com.example.cmpt_362_chitchat.ui.chatRoom.ChatRoomActivity
@@ -35,10 +36,9 @@ class NewChatRoomFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    // TODO: get friends from db, remove hard coded friends list
-    val friendIds = arrayOf("uDlrAFaYukYmbhtgKzgDmndIyPu1")
-    val friendUsernames = arrayOf("User1")
-    var friendsSelected = BooleanArray(friendIds.size) { false }
+    private lateinit var friendIds: Array<String>
+    private lateinit var friendUsernames: Array<String>
+    private lateinit var friendsSelected: BooleanArray
 
     private lateinit var userId: String
     private lateinit var username: String
@@ -54,17 +54,29 @@ class NewChatRoomFragment : Fragment() {
         sharedPreferences = requireContext().getSharedPreferences("sharedPreferences", AppCompatActivity.MODE_PRIVATE)
         username = sharedPreferences.getString("username", "").toString()
 
+        val newChatRoomViewModel =
+            ViewModelProvider(this).get(NewChatRoomViewModel::class.java)
+
+        val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Add Friends")
+
+        newChatRoomViewModel.friendIds.observe(viewLifecycleOwner) { it ->
+            friendIds = it.toTypedArray()
+            friendsSelected = BooleanArray(friendIds.size) { false }
+        }
+
+        newChatRoomViewModel.friendUsernames.observe(viewLifecycleOwner) { it ->
+            friendUsernames = it.toTypedArray()
+            friendsSelected = BooleanArray(friendIds.size) { false }
+            updateFriendOptions(builder)
+        }
+
         _binding = FragmentNewChatRoomBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val addFriends = binding.addFriendsChatRoom
         addFriends.setOnClickListener {
-            val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
-            builder.setTitle("Add Friends")
-
-            builder.setMultiChoiceItems(friendUsernames, friendsSelected) { _, which, isChecked ->
-                friendsSelected[which] = isChecked
-            }
+            updateFriendOptions(builder)
 
             builder.setPositiveButton("Ok", null)
             builder.setNegativeButton("Cancel", null)
@@ -157,5 +169,11 @@ class NewChatRoomFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun updateFriendOptions(builder: AlertDialog.Builder) {
+        builder.setMultiChoiceItems(friendUsernames, friendsSelected) { _, which, isChecked ->
+            friendsSelected[which] = isChecked
+        }
     }
 }
