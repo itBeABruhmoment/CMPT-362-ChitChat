@@ -70,10 +70,6 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 Log.i("addFriendRequest", "done")
             }
         }
-        //if(!sendingRequest.get()) {
-            //sendingRequest.set(true)
-
-        //}
         return AddFriendRequestResult.SUCCESS
     }
 
