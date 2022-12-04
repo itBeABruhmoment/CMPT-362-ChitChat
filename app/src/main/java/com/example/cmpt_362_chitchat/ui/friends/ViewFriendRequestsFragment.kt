@@ -47,8 +47,6 @@ class ViewFriendRequestsFragment : Fragment() {
 
             view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
                 viewModel.addFriendRequest(tempUser.uid, tempUser.uid)
-                viewModel.addFriendRequest(tempUser.uid, tempUser.uid)
-                viewModel.addFriendRequest(tempUser.uid, tempUser.uid)
             }
         }
 
