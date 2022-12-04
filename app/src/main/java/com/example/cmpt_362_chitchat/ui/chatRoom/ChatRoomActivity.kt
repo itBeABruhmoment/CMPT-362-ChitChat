@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.data.Message
+import com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.CustomEditText
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
@@ -27,7 +28,7 @@ import java.net.URL
 class ChatRoomActivity: AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var messageBox: EditText
+    private lateinit var messageBox: CustomEditText
     private lateinit var sendButton: ImageView
 
     private lateinit var messageAdapter: MessageAdapter
@@ -57,6 +58,7 @@ class ChatRoomActivity: AppCompatActivity() {
 
         chatRoomName = intent.getStringExtra("chatRoomName").toString()
         supportActionBar?.title = chatRoomName
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         username = sharedPreferences.getString("username", "").toString()
         sendUID = Firebase.auth.currentUser?.uid.toString()
@@ -127,7 +129,7 @@ class ChatRoomActivity: AppCompatActivity() {
             messageBox.setText("")
         }
 
-        // Initialize video call servcer URL
+        // Initialize video call server URL
         try {
             val serverURL = URL("https://meet.jit.si")
             val defaultOptions = JitsiMeetConferenceOptions.Builder()
@@ -183,6 +185,10 @@ class ChatRoomActivity: AppCompatActivity() {
             }
             R.id.video_call -> {
                 videoCall()
+                return true
+            }
+            android.R.id.home -> {
+                this.finish()
                 return true
             }
         }

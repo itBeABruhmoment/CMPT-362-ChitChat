@@ -42,7 +42,7 @@ class MessageAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        var viewHolder: ViewHolder? = null
+        val viewHolder: ViewHolder?
         val message = messageList[position]
 
         if (holder.javaClass == SendViewHolder::class.java) {
