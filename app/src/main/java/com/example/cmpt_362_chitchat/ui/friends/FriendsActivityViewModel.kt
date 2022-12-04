@@ -100,11 +100,11 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     private fun getFriendsNode(uid: String): DatabaseReference {
-        return database.child("Users").child(user.uid).child(FRIENDS)
+        return database.child("Users").child(uid).child(FRIENDS)
     }
 
     private fun getFriendRequestsNode(uid: String): DatabaseReference {
-        return database.child("Users").child(user.uid).child(RECIEVED_REQUESTS)
+        return database.child("Users").child(uid).child(RECIEVED_REQUESTS)
     }
 
     private fun getSentRequestsNode(uid: String): DatabaseReference {
@@ -411,6 +411,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             if(request == null) {
                 return
             }
+            println("Debug: friend request ${request.id} ${request.sender} ${request.recipient}")
 
             Log.i("flag", "4a")
             allowFriendRequest(request) { allow ->
