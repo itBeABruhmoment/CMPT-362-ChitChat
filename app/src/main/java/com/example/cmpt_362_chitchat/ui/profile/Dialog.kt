@@ -27,6 +27,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         const val NAME_DIALOG = 5
         const val PHOTO_DIALOG = 6
         const val EMAIL_DIALOG = 7
+        const val NAME_LAST_DIALOG = 8
     }
 
     private val genderOptions = arrayOf(
@@ -93,6 +94,17 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                 profileEditText = view.findViewById(R.id.Edit)
                 builder.setView(view)
                 profileEditText.hint = "New name"
+                viewModel.setDialogID(dialogID)
+            }
+
+            NAME_LAST_DIALOG -> {
+                val view = requireActivity().layoutInflater.inflate(
+                    R.layout.fragment_dialog_profile_string,
+                    null
+                )
+                profileEditText = view.findViewById(R.id.Edit)
+                builder.setView(view)
+                profileEditText.hint = "Last name"
                 viewModel.setDialogID(dialogID)
             }
 
