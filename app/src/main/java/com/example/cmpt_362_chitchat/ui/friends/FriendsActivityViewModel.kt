@@ -90,11 +90,11 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     public fun removeFriend(friend: String) {
-        getFriendsNode(friend).removeValue().addOnFailureListener() {
+        getFriendsNode(user.uid).child(friend).removeValue().addOnFailureListener() {
             Log.i("FriendsActivity", "failed to add remove friend $friend from user")
         }
 
-        getFriendsNode(user.uid).removeValue().addOnFailureListener() {
+        getFriendsNode(friend).child(user.uid).removeValue().addOnFailureListener() {
             Log.i("FriendsActivity", "failed to remove user as friend of $friend")
         }
     }
