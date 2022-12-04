@@ -46,6 +46,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         getSentRequestsNode(user.uid).addValueEventListener(SentRequestPostListener())
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     public fun addFriendRequest(sender: String, recipient: String): AddFriendRequestResult {
         val request: FriendRequest = FriendRequest("", sender, recipient)
         val senderAddNode: DatabaseReference = getSentRequestsNode(sender).push()
@@ -56,116 +57,25 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
         request.id = key
 
-        if(!sendingRequest.get()) {
-            sendingRequest.set(true)
-            CoroutineScope(Dispatchers.IO.limitedParallelism(1)).launch {
-                runBlocking {
-                    Log.i("addFriendRequest", "start")
-                    if (allowFriendRequest(request)) {
-                        Log.i("addFriendRequest", "allow true")
-                        // add friendship on database
-                        runBlocking { writeFriendRequest(request) }
-                    }
-                    sendingRequest.set(false)
-                    Log.i("addFriendRequest", "done")
+        // max one instance of this code block running at a time
+        CoroutineScope(Dispatchers.IO.limitedParallelism(1)).launch {
+            runBlocking {
+                Log.i("addFriendRequest", "start")
+                if (allowFriendRequest(request)) {
+                    Log.i("addFriendRequest", "allow true")
+                    // add friendship on database
+                    runBlocking { writeFriendRequest(request) }
                 }
+                sendingRequest.set(false)
+                Log.i("addFriendRequest", "done")
             }
         }
+        //if(!sendingRequest.get()) {
+            //sendingRequest.set(true)
 
-
-        //friendRequestQueue.addRequest(sender, recipient)
-        //friendRequestQueue.addRequest(sender, recipient)
-        //friendRequestQueue.addRequest(sender, recipient)
+        //}
         return AddFriendRequestResult.SUCCESS
     }
-
-    /*
-    // friend request sending has to be done sequentially to ensure no redundant requests are sent
-    // queue for operations to send friend requests
-    private inner class SendFriendRequestQueue {
-        private val sendRequestQueue: CopyOnWriteArrayList<FriendRequest> = CopyOnWriteArrayList()
-        private val processingRequest: AtomicBoolean = AtomicBoolean(false)
-
-        @Synchronized
-        public fun addRequest(sender: String, recipient: String) {
-            // make request
-            val request: FriendRequest = FriendRequest("", sender, recipient)
-            val senderAddNode: DatabaseReference = getSentRequestsNode(sender).push()
-            val key: String? = senderAddNode.key
-            if(key == null) {
-                Log.i("addRequest()", "failed to construct request")
-                return
-            }
-            request.id = key
-
-            var length: Int = sendRequestQueue.size
-            sendRequestQueue.add(request)
-
-            if(length == 0) { // queue was previously empty, start processing
-                Log.i("addRequest()", "friend request queue empty")
-                tryToAddFriend()
-            } else {
-                Log.i("addRequest()", "not empty")
-            }
-        }
-
-        // tries to add a friend to database
-        // after a friend is added, this function will be called recursively to process next request in queue if any
-        private fun tryToAddFriend() {
-            Log.i("tryToAddFriend()", "start")
-            var requestTemp: FriendRequest? = null; // TODO: try using copy on write queue
-            if(sendRequestQueue.size != 0) {
-                requestTemp = sendRequestQueue.get(0)
-            }
-
-            Log.i("tryToAddFriend()", "flag 1")
-            val request = requestTemp
-            if(request == null) {
-                Log.i("tryToAddFriend()", "request null")
-                processingRequest.set(false)
-                return
-            }
-
-            Log.i("tryToAddFriend()", "flag 2")
-            Log.i("tryToAddFriend()", "request ${request.id}")
-            allowFriendRequest(request) { allow ->
-                if(allow) {
-                    Log.i("tryToAddFriend", "allow true")
-                    // add friendship on database
-                    val toSender: SingularWrite = SingularWrite(
-                        request,
-                        getSentRequestsNode(request.sender).child(request.id),
-                        {
-                            Log.i("Friends", "added request to sender")
-                        },
-                        {
-                            Log.i("Friends", "failed to add request to sender")
-                        }
-                    )
-                    val toRecipient: SingularWrite = SingularWrite (
-                        request,
-                        getFriendRequestsNode(request.recipient).child(request.id),
-                        {
-                            Log.i("Friends", "added request to recipient")
-                        },
-                        {
-                            Log.i("Friends", "failed to add request to recipient")
-                        }
-                    )
-                    val writes: ArrayList<SingularWrite> = arrayListOf(toSender, toRecipient)
-                    // write to database and run callback when done
-                    val combinedWrite: CombinedWrite = CombinedWrite(writes) {
-                        Log.i("tryToAddFriend()", "next")
-                        sendRequestQueue.removeAt(0)
-                        Log.i("tryToAddFriend()", "${sendRequestQueue.size} left")
-                        tryToAddFriend()
-                    }
-                }
-            }
-        }
-    }
-
-     */
 
     public fun removeFriendRequest(friendRequest: FriendRequest) {
         viewModelScope.launch(Dispatchers.IO) {
