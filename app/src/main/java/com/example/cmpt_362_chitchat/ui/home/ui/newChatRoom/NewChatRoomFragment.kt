@@ -160,6 +160,7 @@ class NewChatRoomFragment : Fragment() {
             intent.putExtra("chatRoomId", newChatRoomId)
             intent.putExtra("chatRoomType", chatRoomType)
             intent.putExtra("chatRoomName", chatRoomName)
+            intent.putExtra("friendList", friendIds)
             startActivity(intent)
         }
 

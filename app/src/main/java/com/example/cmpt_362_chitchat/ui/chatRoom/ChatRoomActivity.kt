@@ -1,39 +1,50 @@
 package com.example.cmpt_362_chitchat.ui.chatRoom
 
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.inputmethod.InputContentInfoCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.data.Message
+import com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.CustomEditText
+import com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.CustomEditText.KeyBoardInputCallbackListener
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import org.jitsi.meet.sdk.JitsiMeet
 import org.jitsi.meet.sdk.JitsiMeetActivity
 import org.jitsi.meet.sdk.JitsiMeetConferenceOptions
 import java.net.MalformedURLException
 import java.net.URL
 
+
 class ChatRoomActivity: AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var messageBox: EditText
+    private lateinit var messageBox: CustomEditText
     private lateinit var sendButton: ImageView
+    private lateinit var imagePreview: ImageView
+    private lateinit var imageUri: Uri
+    private lateinit var cancelImage: ImageView
+    private var sendImage: Boolean = false
 
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var messageList: ArrayList<Message>
 
     private lateinit var database: DatabaseReference
+    private lateinit var storage: StorageReference
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var messageListener: ValueEventListener
 
@@ -57,6 +68,7 @@ class ChatRoomActivity: AppCompatActivity() {
 
         chatRoomName = intent.getStringExtra("chatRoomName").toString()
         supportActionBar?.title = chatRoomName
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         username = sharedPreferences.getString("username", "").toString()
         sendUID = Firebase.auth.currentUser?.uid.toString()
@@ -69,8 +81,32 @@ class ChatRoomActivity: AppCompatActivity() {
         recyclerView = findViewById(R.id.recycler_view)
         messageBox = findViewById(R.id.message)
         sendButton = findViewById(R.id.send_button)
+        imagePreview = findViewById(R.id.image_preview)
+        imagePreview.visibility = View.GONE
+        cancelImage = findViewById(R.id.cancel_image)
+        cancelImage.visibility = View.GONE
+        cancelImage.setOnClickListener {
+            sendImage = false
+            imagePreview.visibility = View.GONE
+            cancelImage.visibility = View.GONE
+        }
         messageList = ArrayList()
         messageAdapter = MessageAdapter(this, messageList, sendUID, hashMapOf())
+
+        messageBox.setKeyBoardInputCallbackListener(object : KeyBoardInputCallbackListener {
+            override fun onCommitContent(
+                inputContentInfo: InputContentInfoCompat?,
+                flags: Int, opts: Bundle?
+            ) {
+                sendImage = true
+
+                imageUri = inputContentInfo?.contentUri!!
+                imagePreview.setImageURI(imageUri)
+
+                imagePreview.visibility = View.VISIBLE
+                cancelImage.visibility = View.VISIBLE
+            }
+        })
 
         chatRoomViewModel.participants.observe(this) { it ->
             messageAdapter.replace(it)
@@ -115,19 +151,55 @@ class ChatRoomActivity: AppCompatActivity() {
                 currentUserIsParticipant = true
             }
 
-            val message = Message(messageBox.text.toString(), sendUID)
-            database
-                .child("ChatRooms")
-                .child(chatRoomType)
-                .child(chatRoom)
-                .child("messages")
-                .push()
-                .setValue(message)
-            messageBox.onEditorAction(EditorInfo.IME_ACTION_DONE)
-            messageBox.setText("")
+            // Send message with image
+            if(sendImage) {
+
+                val cut = imageUri.toString().lastIndexOf("/")
+                val imageName = imageUri.toString().substring(cut + 1)
+
+                storage = FirebaseStorage.getInstance().reference
+
+                storage
+                    .child("SentImages")
+                    .child(sendUID)
+                    .child(imageName)
+                    .putFile(imageUri)
+
+                val message = Message(messageBox.text.toString(), sendUID, imageName)
+                database
+                    .child("ChatRooms")
+                    .child(chatRoomType)
+                    .child(chatRoom)
+                    .child("messages")
+                    .push()
+                    .setValue(message)
+                messageBox.onEditorAction(EditorInfo.IME_ACTION_DONE)
+                messageBox.setText("")
+
+                sendImage = false
+                imagePreview.visibility = View.GONE
+                cancelImage.visibility = View.GONE
+
+            }
+            // Send message without any attached image
+            else {
+                if (messageBox.text.toString() != "") {
+
+                    val message = Message(messageBox.text.toString(), sendUID)
+                    database
+                        .child("ChatRooms")
+                        .child(chatRoomType)
+                        .child(chatRoom)
+                        .child("messages")
+                        .push()
+                        .setValue(message)
+                    messageBox.onEditorAction(EditorInfo.IME_ACTION_DONE)
+                    messageBox.setText("")
+                }
+            }
         }
 
-        // Initialize video call servcer URL
+        // Initialize video call server URL
         try {
             val serverURL = URL("https://meet.jit.si")
             val defaultOptions = JitsiMeetConferenceOptions.Builder()
@@ -139,20 +211,6 @@ class ChatRoomActivity: AppCompatActivity() {
             e.printStackTrace()
         }
 
-    }
-
-    private fun getUserName() {
-        database
-            .child("Users")
-            .child(sendUID)
-            .child("username")
-            .get()
-            .addOnSuccessListener {
-                username = it.value.toString()
-            }
-            .addOnFailureListener {
-                Log.e("firebase", "Error getting data", it)
-            }
     }
 
     override fun onDestroy() {
@@ -183,6 +241,10 @@ class ChatRoomActivity: AppCompatActivity() {
             }
             R.id.video_call -> {
                 videoCall()
+                return true
+            }
+            android.R.id.home -> {
+                this.finish()
                 return true
             }
         }
