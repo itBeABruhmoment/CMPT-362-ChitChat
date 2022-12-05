@@ -9,8 +9,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -35,7 +33,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     )
 
     private lateinit var profileEditText : EditText
-    private lateinit var title: TextView
+
 
     private lateinit var viewModel: ProfileViewModel
 

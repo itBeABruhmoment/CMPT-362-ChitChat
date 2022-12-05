@@ -59,12 +59,12 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "username", "Bob", "GoodWill", "Feb 3, 2003", "Male", "*******", "email"
     )
 
+    //viewModel + database
     private lateinit var viewModel: ProfileViewModel
     private lateinit var profileAdapter : ProfileAdapter
     private lateinit var database: DatabaseReference
     private lateinit var user: FirebaseUser
     private lateinit var auth: FirebaseAuth
-
     private lateinit var storageReference : StorageReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,22 +82,9 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         user = FirebaseAuth.getInstance().currentUser!!
         // Name, email address, and profile photo Url
         val email = user.email
-
-
         val uid = user.uid
-        println("DEBUG: uid $uid")
 
-        /**
-        //adds attribute to database for testing
-        database = FirebaseDatabase.getInstance().getReference("Users")
-        database.child(uid).child("gender").setValue("Male")
-
-        //adds attribute to database for testing
-        database = FirebaseDatabase.getInstance().getReference("Users")
-        database.child(uid).child("name").setValue("myName")
-        */
-
-        //change username, gender and name placeholder (use firebase username)
+        //change username, DOB, gender, and name placeholder (use firebase username)
         database = FirebaseDatabase.getInstance().getReference("Users")
         database.child(uid).get().addOnSuccessListener {
             if (it.exists()) {
@@ -106,10 +93,12 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 val firstName = it.child("firstName").value.toString()
                 val lastName = it.child("lastName").value.toString()
                 val gender = it.child("gender").value.toString()
+                val dateOfBirth = it.child("DOB").value.toString()
                 //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
                 userInfo[0] = username
                 userInfo[1] = firstName
                 userInfo[2] = lastName
+                userInfo[3] = dateOfBirth
                 userInfo[4] = gender
                 profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
                 profileItems.adapter = profileAdapter
@@ -120,8 +109,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         if (email != null) {
             userInfo[6] = email
         }
-
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -198,6 +185,8 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     )
                     datePickerDialog.show()
                 }
+
+
                 "Gender" -> {
                     val newDialog  = Dialog()
                     val bundle = Bundle()
@@ -308,8 +297,27 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         startActivity(intent)
     }
 
-    //
+    //updates DOB
     override fun onDateSet(view: DatePicker, year: Int, monthOfYear: Int, dayOfMonth: Int) {
+
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        // has to be 16 years old to use app
+        if (currentYear - year < 16) {
+            Toast.makeText(applicationContext,"Invalid date (too young)!",Toast.LENGTH_SHORT).show()
+        } else {
+            val uid = user.uid
+            val month = getMonth(monthOfYear)
+            val dateString = "$month $dayOfMonth $year"
+            database = FirebaseDatabase.getInstance().getReference("Users")
+            database.child(uid).child("DOB").setValue(dateString)
+            Toast.makeText(applicationContext,"DOB successfully updated",Toast.LENGTH_SHORT).show()
+            userInfo[3] = dateString
+
+            //update view for adapter
+            profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
+            profileAdapter.notifyDataSetChanged()
+            profileItems.adapter = profileAdapter
+        }
 
     }
 
@@ -354,7 +362,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                                     Toast.makeText(this@ProfileActivity, "Failed to send email verification to ..", Toast.LENGTH_SHORT).show()
                                 }
 
-                                //signout
+                                //signout after changing email
                                 auth.signOut()
                                 intent = Intent(this, LoginActivity::class.java)
                                 startActivity(intent)
@@ -442,12 +450,10 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 //Note this sometimes happen, no clue as to why
                 println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
             }
-
             //update view for adapter
             profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
             profileAdapter.notifyDataSetChanged()
             profileItems.adapter = profileAdapter
-
         }
     }
 
@@ -456,6 +462,50 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         //get dialog info
         val dialog = viewModel.getDialog()
         dialog.dismiss()
+    }
+
+    //convert int to string for months
+    private fun getMonth(monthOfYear: Int) : String {
+        var month = ""
+        when (monthOfYear) {
+            0 -> {
+                month = "Jan"
+            }
+            1 -> {
+                month = "Feb"
+            }
+            2 -> {
+                month = "Mar"
+            }
+            3 -> {
+                month = "Apr"
+            }
+            4 -> {
+                month = "May"
+            }
+            5 -> {
+                month = "June"
+            }
+            6 -> {
+                month = "July"
+            }
+            7 -> {
+                month = "Aug"
+            }
+            8 -> {
+                month = "Sept"
+            }
+            9 -> {
+                month = "Oct"
+            }
+            10 -> {
+                month = "Nov"
+            }
+            11 -> {
+                month = "Dec"
+            }
+        }
+        return month
     }
 
 }
