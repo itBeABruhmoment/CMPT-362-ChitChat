@@ -59,12 +59,12 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         "username", "Bob", "GoodWill", "Feb 3, 2003", "Male", "*******", "email"
     )
 
+    //viewModel + database
     private lateinit var viewModel: ProfileViewModel
     private lateinit var profileAdapter : ProfileAdapter
     private lateinit var database: DatabaseReference
     private lateinit var user: FirebaseUser
     private lateinit var auth: FirebaseAuth
-
     private lateinit var storageReference : StorageReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,8 +109,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         if (email != null) {
             userInfo[6] = email
         }
-
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
