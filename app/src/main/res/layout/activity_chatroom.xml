@@ -19,25 +19,50 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/linear"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="bottom"
         android:orientation="horizontal"
         android:weightSum="100"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/image_preview"
+            android:layout_width="50dp"
+            android:layout_height="100dp"
+            android:layout_gravity="top"
+            android:layout_marginStart="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/message"
+            android:src="@drawable/ic_baseline_photo_library_24"/>
+
+        <ImageView
+            android:id="@+id/cancel_image"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/image_preview"
+            android:src="@mipmap/ic_cross_foreground"/>
 
         <com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.CustomEditText
             android:id="@+id/message"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_weight="80"
             android:background="@drawable/send_message_background"
             android:hint="@string/type_a_message"
             android:paddingStart="10dp"
             android:textColor="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/send_button"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginEnd="30dp"
             tools:ignore="RtlSymmetry" />
 
         <ImageView
@@ -45,11 +70,14 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:layout_weight="20"
             android:clickable="true"
             android:src="@drawable/send_btn"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

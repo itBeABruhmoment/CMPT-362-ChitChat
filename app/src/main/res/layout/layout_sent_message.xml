@@ -6,15 +6,17 @@
 
     <RelativeLayout
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_height="wrap_content">
+        android:layout_marginEnd="5dp">
 
         <TextView
             android:id="@+id/username"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:paddingEnd="5dp"/>
 
         <TextView
             android:id="@+id/sent_message"
@@ -23,6 +25,7 @@
             android:text="@string/sent_message"
             android:textColor="@color/white"
             android:padding="10dp"
+            android:layout_alignParentEnd="true"
             android:background="@drawable/color_filled_background"
             android:layout_below="@id/username"
             android:layout_marginEnd="5dp"/>
