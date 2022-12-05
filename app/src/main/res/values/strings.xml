@@ -8,6 +8,7 @@
     <string name="prompt_firstname">First Name</string>
     <string name="prompt_lastname">Last Name</string>
     <string name="prompt_gender">Gender</string>
+    <string name="prompt_user">Search User</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
     <string name="action_sign_in">Login</string>
@@ -37,4 +38,6 @@
     <string name="unfriend_user">Unfriend</string>
     <string name="users_list">Users list</string>
     <string name="add_friends">Add friends</string>
+    <string name="enter_user_email">Enter user email</string>
+    <string name="add_friend">Add Friend</string>
 </resources>

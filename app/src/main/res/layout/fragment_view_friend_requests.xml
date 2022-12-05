@@ -1,27 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <EditText
+        android:id="@+id/search_user"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="84dp"
+        android:autofillHints="@string/prompt_name"
+        android:hint="@string/enter_user_email"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_friend"
+        android:id="@+id/fragment_view_friend_requests_test"
+        app:layout_constraintTop_toBottomOf="@id/search_user" />
 
     <TextView
         android:id="@+id/fragment_view_friend_requests_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Friend Requests"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fragment_view_friend_requests_test"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
         />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="test"
-        android:id="@+id/fragment_view_friend_requests_test"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"/>
 
     <ListView
         android:layout_marginTop="20dp"

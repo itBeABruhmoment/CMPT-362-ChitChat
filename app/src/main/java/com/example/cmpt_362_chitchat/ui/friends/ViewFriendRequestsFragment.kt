@@ -8,17 +8,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.login.LoginActivity
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
@@ -34,19 +33,37 @@ class ViewFriendRequestsFragment : Fragment() {
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_view_friend_requests, container, false)
 
+        val userEmail = view.findViewById<EditText>(R.id.search_user)
+
         // get viewmodel
-        val tempUser: FirebaseUser? = Firebase.auth.currentUser
-        if(tempUser == null) {
+        val currentUser: FirebaseUser? = Firebase.auth.currentUser
+        if (currentUser == null) {
             Log.i("FriendsActivity", "user null, going to login page")
             val intent: Intent = Intent(requireActivity(), LoginActivity::class.java)
             startActivity(intent)
         } else {
             Log.i("FriendsActivity", "user not null, continue")
-            val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(tempUser)
+            val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(currentUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
 
             view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
-                viewModel.addFriendRequest(tempUser.uid, tempUser.uid)
+                val user = userEmail.text.toString()
+                if (user == "") {
+                    Toast.makeText(requireContext(), "User email required", Toast.LENGTH_SHORT).show()
+                } else {
+                    var recipientId = ""
+                    FirebaseDatabase.getInstance().reference
+                        .child("Users")
+                        .get().addOnSuccessListener {
+                            for (snapshot in it.children) {
+                                if (snapshot.child("email").value == user) {
+                                    recipientId = snapshot.key.toString()
+                                    viewModel.addFriendRequest(currentUser.uid, recipientId)
+                                    userEmail.text.clear()
+                                }
+                            }
+                        }
+                }
             }
         }
 

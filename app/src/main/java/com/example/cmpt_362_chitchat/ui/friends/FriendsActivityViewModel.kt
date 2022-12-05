@@ -120,21 +120,21 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     }
 
     public fun removeFriend(friend: String) {
-        getFriendsNode(friend).removeValue().addOnFailureListener() {
+        getFriendsNode(user.uid).child(friend).removeValue().addOnFailureListener() {
             Log.i("FriendsActivity", "failed to add remove friend $friend from user")
         }
 
-        getFriendsNode(user.uid).removeValue().addOnFailureListener() {
+        getFriendsNode(friend).child(user.uid).removeValue().addOnFailureListener() {
             Log.i("FriendsActivity", "failed to remove user as friend of $friend")
         }
     }
 
     private fun getFriendsNode(uid: String): DatabaseReference {
-        return database.child("Users").child(user.uid).child(FRIENDS)
+        return database.child("Users").child(uid).child(FRIENDS)
     }
 
     private fun getFriendRequestsNode(uid: String): DatabaseReference {
-        return database.child("Users").child(user.uid).child(RECIEVED_REQUESTS)
+        return database.child("Users").child(uid).child(RECIEVED_REQUESTS)
     }
 
     private fun getSentRequestsNode(uid: String): DatabaseReference {

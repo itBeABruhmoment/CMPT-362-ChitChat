@@ -9,8 +9,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cmpt_362_chitchat.R
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -27,6 +25,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
         const val NAME_DIALOG = 5
         const val PHOTO_DIALOG = 6
         const val EMAIL_DIALOG = 7
+        const val NAME_LAST_DIALOG = 8
     }
 
     private val genderOptions = arrayOf(
@@ -34,7 +33,7 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     )
 
     private lateinit var profileEditText : EditText
-    private lateinit var title: TextView
+
 
     private lateinit var viewModel: ProfileViewModel
 
@@ -93,6 +92,17 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                 profileEditText = view.findViewById(R.id.Edit)
                 builder.setView(view)
                 profileEditText.hint = "New name"
+                viewModel.setDialogID(dialogID)
+            }
+
+            NAME_LAST_DIALOG -> {
+                val view = requireActivity().layoutInflater.inflate(
+                    R.layout.fragment_dialog_profile_string,
+                    null
+                )
+                profileEditText = view.findViewById(R.id.Edit)
+                builder.setView(view)
+                profileEditText.hint = "Last name"
                 viewModel.setDialogID(dialogID)
             }
 
