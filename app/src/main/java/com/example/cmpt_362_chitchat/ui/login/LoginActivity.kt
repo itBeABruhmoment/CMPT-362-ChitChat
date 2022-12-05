@@ -39,11 +39,17 @@ class LoginActivity : AppCompatActivity() {
         val login = binding.login
         val loading = binding.loading
         val register = binding.registerNewUser
+        val forgot = binding.textViewForgot
 
         auth = FirebaseAuth.getInstance()
 
         register?.setOnClickListener {
             intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+        }
+
+        forgot!!.setOnClickListener{
+            intent = Intent(this, RecoverPasswordActivity::class.java)
             startActivity(intent)
         }
 
@@ -72,7 +78,7 @@ class LoginActivity : AppCompatActivity() {
                 showLoginFailed(loginResult.error)
             }
             if (loginResult.success != null) {
-                // TODO: cleanup code
+
                 auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString()).addOnCompleteListener(this) {
                     /*Email Verification
                     If email is not verified, cannot login. However this would be annoying to have enabled while we are testing the app so it will be disabled
