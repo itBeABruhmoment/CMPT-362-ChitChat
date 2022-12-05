@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.example.cmpt_362_chitchat.R
@@ -57,6 +58,10 @@ class FriendRequestArrayAdapter(
             viewModel.addFriend(requests[position].request)
             viewModel.removeFriendRequest(requests[position].request)
         }
+        viewModel.loadPhoto(
+            requests[position].request.sender,
+            view.findViewById<ImageView>(R.id.fragment_friend_request_item_image)
+        )
         return view
     }
 }
