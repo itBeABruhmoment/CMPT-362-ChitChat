@@ -1,5 +1,6 @@
 package com.example.cmpt_362_chitchat.ui.friends
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.ImageView
@@ -25,11 +26,13 @@ import java.io.File
 import java.lang.IllegalArgumentException
 import java.util.LinkedList
 import java.util.Queue
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 
 class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     // for storing info needed to display users
+    private val profilePics: ConcurrentHashMap<String, Bitmap> = ConcurrentHashMap(50)
     private var database: DatabaseReference = Firebase.database.reference
     private val sendingRequest: AtomicBoolean = AtomicBoolean(false)
     //private val friendRequestQueue: SendFriendRequestQueue = SendFriendRequestQueue()
@@ -138,15 +141,42 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         return database.child("Users").child(uid).child(SENT_REQUESTS)
     }
 
-    //load photo from database, from profile activity
+    // load photo from database
+    // based on code from profile activity
     public fun loadPhoto(uid : String, imageView: ImageView) {
+        val alreadyExists: Bitmap? = profilePics.get(uid)
+        if(alreadyExists != null) {
+            imageView.setImageBitmap(alreadyExists)
+        }
+
         val storageRef = FirebaseStorage.getInstance().reference.child("UserPhotos/$uid")
         //create a temp location for photo
         val localFile = File.createTempFile("tempImage", "jpg")
         storageRef.getFile(localFile).addOnSuccessListener {
-            val bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
-            //update userPhoto
-            imageView.setImageBitmap(bitmap)
+            CoroutineScope(Dispatchers.Default).launch {
+                val bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
+                // make bitmap square
+                var startX = 0
+                var startY = 0
+                var length = bitmap.width
+                if(bitmap.width > bitmap.height) {
+                    length = bitmap.height
+                    startX = (bitmap.width - bitmap.height) / 2
+                    startY = 0
+                } else if(bitmap.width < bitmap.height) {
+                    length = bitmap.width
+                    startX = 0
+                    startY = (bitmap.height - bitmap.width) / 2
+                }
+                val cropped = Bitmap.createBitmap(bitmap, startX, startY, length, length)
+                val scaled = Bitmap.createScaledBitmap(cropped, 100, 100, false)
+
+                withContext(Dispatchers.Main) {
+                    profilePics.put(uid, scaled)
+                    //update userPhoto
+                    imageView.setImageBitmap(scaled)
+                }
+            }
             println("DEBUG: photo successfully loaded")
         }.addOnFailureListener {
             println("DEBUG: photo was not able to load")
@@ -290,33 +320,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
-
-    private inner class RequestDataPostListener(
-        val onComplete: (ArrayList<FriendRequest>, Boolean) -> Unit
-    ) : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            Log.i("FriendsActivity", "friend request onDataChange")
-            val requests: ArrayList<FriendRequest> = ArrayList()
-            snapshot.children.forEach() {
-                val request: FriendRequest? = it.getValue(FriendRequest::class.java)
-                if(request != null) {
-                    requests.add(request)
-                } else {
-                    Log.i("FriendsActivity", "uid of friend request null")
-                }
-            }
-            onComplete(requests, true)
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-            Log.i("FriendsActivity", "error with friend request data")
-            Log.i("FriendsActivity", error.message)
-            onComplete(ArrayList(), false)
-        }
-    }
-
-
-
+    // update ui to reflect friend requests in database
     private inner class FriendsRequestPostListener : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             Log.i("FriendsRequestPostListener", "friend request onDataChange")
@@ -356,6 +360,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    // update ui to reflect sent friend requests in database
     private inner class SentRequestPostListener : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             Log.i("FriendsActivity", "sent request onDataChange")
@@ -394,6 +399,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    // update ui to reflect friends database
     private inner class FriendsPostListener : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             Log.i("FriendsActivity", "friend onDataChange")
