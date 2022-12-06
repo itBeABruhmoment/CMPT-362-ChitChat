@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/friend_kebab_menu_profile"
-        android:title="@string/view_profile"/>
+    <item android:id="@+id/friend_kebab_menu_make_chatroom"
+        android:title="@string/start_chatroom"/>
 
     <item android:id="@+id/friend_kebab_menu_unfriend"
         android:title="@string/unfriend_user"/>

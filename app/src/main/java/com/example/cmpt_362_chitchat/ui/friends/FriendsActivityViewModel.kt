@@ -33,9 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     // for storing info needed to display users
     private val profilePics: ConcurrentHashMap<String, Bitmap> = ConcurrentHashMap(50)
+
     private var database: DatabaseReference = Firebase.database.reference
-    private val sendingRequest: AtomicBoolean = AtomicBoolean(false)
-    //private val friendRequestQueue: SendFriendRequestQueue = SendFriendRequestQueue()
     public val friendsRequests: MutableLiveData<ArrayList<FriendRequestEntry>> = MutableLiveData()
     public val sentRequests: MutableLiveData<ArrayList<FriendRequestEntry>> = MutableLiveData()
     public val friends: MutableLiveData<ArrayList<FriendEntry>> = MutableLiveData()
@@ -44,38 +43,41 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         friendsRequests.value = ArrayList()
         friends.value = ArrayList()
 
+        // init database observers
         getFriendsNode(user.uid).addValueEventListener(FriendsPostListener())
         getFriendRequestsNode(user.uid).addValueEventListener(FriendsRequestPostListener())
         getSentRequestsNode(user.uid).addValueEventListener(SentRequestPostListener())
     }
 
+    // check if a friend request is redundant and send it if it isn't
     @OptIn(ExperimentalCoroutinesApi::class)
-    public fun addFriendRequest(sender: String, recipient: String): AddFriendRequestResult {
+    public fun addFriendRequest(sender: String, recipient: String) {
+        // make FriendRequest object
         val request: FriendRequest = FriendRequest("", sender, recipient)
         val senderAddNode: DatabaseReference = getSentRequestsNode(sender).push()
         val key: String? = senderAddNode.key
         if(key == null) {
             Log.i("addRequest()", "failed to construct request")
-            return AddFriendRequestResult.DUPLICATE_REQUEST
+            return
         }
         request.id = key
 
-        // max one instance of this code block running at a time
+        // max one instance of this coroutine running at a time
         CoroutineScope(Dispatchers.IO.limitedParallelism(1)).launch {
             runBlocking {
                 Log.i("addFriendRequest", "start")
                 if (allowFriendRequest(request)) {
                     Log.i("addFriendRequest", "allow true")
-                    // add friendship on database
+                    // add friend request to database
                     runBlocking { writeFriendRequest(request) }
                 }
-                sendingRequest.set(false)
                 Log.i("addFriendRequest", "done")
             }
         }
-        return AddFriendRequestResult.SUCCESS
+        return
     }
 
+    // remove friendRequest from database
     public fun removeFriendRequest(friendRequest: FriendRequest) {
         viewModelScope.launch(Dispatchers.IO) {
             getSentRequestsNode(friendRequest.sender)
@@ -98,6 +100,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
+    // add friend to database
     public fun addFriend(friendRequest: FriendRequest) {
         getFriendsNode(friendRequest.sender)
             .child(friendRequest.recipient)
@@ -119,6 +122,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             }
     }
 
+    // remove friend from database
     public fun removeFriend(friend: String) {
         getFriendsNode(user.uid).child(friend).removeValue().addOnFailureListener() {
             Log.i("FriendsActivity", "failed to add remove friend $friend from user")
@@ -183,19 +187,8 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         }
     }
 
-    private fun friendExists(otherUser: String): Boolean {
-        val friendsTemp: ArrayList<FriendEntry>? = friends.value
-        if(friendsTemp != null) {
-            for(friend: FriendEntry in friendsTemp) {
-                if(friend.uid == otherUser) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    //@OptIn(InternalCoroutinesApi::class)
+    // write a friend request
+    // is used with a runBlocking block to make execution wait until writing to the database is finished
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun writeFriendRequest(send: FriendRequest) = suspendCancellableCoroutine<Unit> {
         val toSender: SingularWrite = SingularWrite(
@@ -221,17 +214,19 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
         val writes: ArrayList<SingularWrite> = arrayListOf(toSender, toRecipient)
         // write to database and run callback when done
         val combinedWrite: CombinedWrite = CombinedWrite(writes) { failed ->
+            // basically a return statement
             it.resume(Unit) { error ->
                 Log.i("Friends", error.toString())
             }
         }
     }
 
+    // returns true if a friend request isn't redundant (not already a friend, not having a pending
+    // request to recipient, not having a pending request from recipient to user)
     private suspend fun allowFriendRequest(attemptToSend: FriendRequest): Boolean {
         return runBlocking { getIfRequestShouldBeSent(attemptToSend) }
     }
 
-    //@OptIn(InternalCoroutinesApi::class)
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getIfRequestShouldBeSent(request: FriendRequest) =
         suspendCancellableCoroutine<Boolean> {
@@ -239,6 +234,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
             var isAlreadySent: Boolean = false;
             var isAlreadyBeingAsked: Boolean = false;
 
+            // check if already friend
             val queryFriends: SingularQuery = SingularQuery(
                 getFriendsNode(request.sender),
                 { friends ->
@@ -248,13 +244,14 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                     Log.i("allowFriendRequest()", it.message.toString())
                 }
             )
+            // check if user has already sent a request
             val querySentRequests: SingularQuery = SingularQuery(
                 getSentRequestsNode(request.sender),
                 { sentRequestsSnapshot ->
                     if(sentRequestsSnapshot != null) {
                         sentRequestsSnapshot.children.forEach { sentRequestSnapshot ->
-                            val request: FriendRequest? = sentRequestSnapshot.getValue(FriendRequest::class.java)
-                            if(request != null && request.recipient == request.recipient) {
+                            val requestTemp: FriendRequest? = sentRequestSnapshot.getValue(FriendRequest::class.java)
+                            if(requestTemp != null && request.recipient == requestTemp.recipient) {
                                 isAlreadySent = true;
                             }
                         }
@@ -264,13 +261,14 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                     Log.i("allowFriendRequest()", it.message.toString())
                 }
             )
+            // check if user is already being asked by the recipient
             val queryReceivedRequests: SingularQuery = SingularQuery(
                 getFriendRequestsNode(request.sender),
                 { receivedRequestsSnapshot ->
                     if (receivedRequestsSnapshot != null) {
                         receivedRequestsSnapshot.children.forEach { receivedRequestSnapshot ->
-                            val request: FriendRequest? = receivedRequestSnapshot.getValue(FriendRequest::class.java)
-                            if(request != null && request.recipient == request.sender) {
+                            val requestTemp: FriendRequest? = receivedRequestSnapshot.getValue(FriendRequest::class.java)
+                            if(requestTemp != null && requestTemp.recipient == request.sender) {
                                 isAlreadyBeingAsked = true;
                             }
                         }
@@ -281,19 +279,23 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             )
 
+            // start query
             val queries: CombinedQuery = CombinedQuery(arrayListOf(queryFriends, queryReceivedRequests, querySentRequests)) { failed ->
-                Log.i("allowFriendRequest()", "$isAlreadyFriend $isAlreadySent $isAlreadyBeingAsked")
+                // basically a return statement
                 it.resume(!(isAlreadyFriend || isAlreadySent || isAlreadyBeingAsked)) { error ->
                     Log.i("allowFriendRequest()", error.toString())
                 }
             }
         }
 
+    // get profile information on users in list and run a callback when all information is obtained
     private fun getUserInfo(
         users: ArrayList<String>,
         onComplete: (ArrayList<UserProfile>, Boolean) -> Unit
     ) {
         val userInfo: ArrayList<UserProfile> = ArrayList(users.size)
+
+        // init logic of queries that need to be done
         val queries: ArrayList<SingularQuery> = ArrayList(users.size)
         for(i in 0 until users.size) {
             userInfo.add(UserProfile(""))
@@ -324,6 +326,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     private inner class FriendsRequestPostListener : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             Log.i("FriendsRequestPostListener", "friend request onDataChange")
+            // put friend requests in list
             val requests: ArrayList<FriendRequest> = ArrayList()
             snapshot.children.forEach() {
                 val request: FriendRequest? = it.getValue(FriendRequest::class.java)
@@ -334,22 +337,19 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             }
 
+            // get info on senders of request
             Log.i("FriendsRequestPostListener", "${requests.size} requests")
             val profilesToGet: ArrayList<String> = ArrayList()
             for(request: FriendRequest in requests) {
                 profilesToGet.add(request.sender)
             }
-
             getUserInfo(profilesToGet) { profiles, failed ->
                 if(!failed) {
-                    Log.i("FriendsRequestPostListener", "${profiles.size} ####################")
                     val requestEntries: ArrayList<FriendRequestEntry> = ArrayList(profiles.size)
                     for(i in 0 until profiles.size) {
                         requestEntries.add(FriendRequestEntry(profiles[i].userName, requests[i]))
                     }
                     friendsRequests.value = requestEntries
-                } else {
-                    Log.i("FriendsRequestPostListener", "failed#################")
                 }
             }
         }
@@ -364,6 +364,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
     private inner class SentRequestPostListener : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             Log.i("FriendsActivity", "sent request onDataChange")
+            // put sent requests in a list
             val requests: ArrayList<FriendRequest> = ArrayList()
             snapshot.children.forEach() {
                 val request: FriendRequest? = it.getValue(FriendRequest::class.java)
@@ -374,6 +375,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             }
 
+            // get info on users being asked
             Log.i("FriendsActivity", "${requests.size} sent requests")
             val profilesToGet: ArrayList<String> = ArrayList()
             for(request: FriendRequest in requests) {
@@ -413,6 +415,7 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 }
             }
 
+            // get profiles of friends
             val getFriendsProfiles: GroupedUserQuery = GroupedUserQuery(friends) { profiles, failed ->
                 if(failed) {
                     Log.i("FriendsActivity", "failed to get profiles of friends")
@@ -534,13 +537,6 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
                 this.userName = userName
                 this.request = request
             }
-        }
-
-        enum class AddFriendRequestResult {
-            SUCCESS,
-            CANT_VERIFY_NON_DUPLICATE,
-            ALREADY_FRIEND,
-            DUPLICATE_REQUEST
         }
     }
 }

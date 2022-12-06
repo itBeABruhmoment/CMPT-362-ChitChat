@@ -46,7 +46,9 @@ class ViewFriendRequestsFragment : Fragment() {
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(currentUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
 
+            // logic of friend adding via email
             view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
+                val currentUserEmail = currentUser.email
                 val user = userEmail.text.toString()
                 if (user == "") {
                     Toast.makeText(requireContext(), "User email required", Toast.LENGTH_SHORT).show()
@@ -56,7 +58,9 @@ class ViewFriendRequestsFragment : Fragment() {
                         .child("Users")
                         .get().addOnSuccessListener {
                             for (snapshot in it.children) {
-                                if (snapshot.child("email").value == user) {
+                                val email: String? = snapshot.child("email").getValue(String::class.java)
+                                Log.d("email", email.toString())
+                                if (email != null && email == user  && email != currentUserEmail) {
                                     recipientId = snapshot.key.toString()
                                     viewModel.addFriendRequest(currentUser.uid, recipientId)
                                     userEmail.text.clear()
@@ -67,6 +71,7 @@ class ViewFriendRequestsFragment : Fragment() {
             }
         }
 
+        // init list view for viewing received friend requests
         friendRequestsListView = view.findViewById(R.id.fragment_view_friend_requests_list)
         viewModel.friendsRequests.observe(requireActivity()) { requests ->
             Log.i("FriendsActivity", "friend request live data update ${requests.size}")
@@ -77,6 +82,8 @@ class ViewFriendRequestsFragment : Fragment() {
             )
             friendRequestsListView.adapter = adapter
         }
+
+        // init list view for viewing sent friend requests
         sentRequestsListView = view.findViewById(R.id.fragment_view_sent_requests_list)
         viewModel.sentRequests.observe(requireActivity()) { sent ->
             Log.i("FriendsActivity", "sent request live data update ${sent.size}")

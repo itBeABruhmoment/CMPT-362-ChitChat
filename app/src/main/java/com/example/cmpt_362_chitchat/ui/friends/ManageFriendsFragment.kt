@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
+// fragment for managing friends
 class ManageFriendsFragment : Fragment() {
     private lateinit var viewModel: FriendsActivityViewModel
 
@@ -35,14 +36,14 @@ class ManageFriendsFragment : Fragment() {
             Log.i("FriendsActivity", "user not null, continue")
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(tempUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
-        }
 
-        val listView: ListView = view.findViewById(R.id.fragment_manage_friends_list)
-        viewModel.friends.observe(requireActivity()) { friends ->
-            val adapter: FriendsArrayAdapter = FriendsArrayAdapter(friends, requireActivity(), viewModel)
-            listView.adapter = adapter
+            // init list view
+            val listView: ListView = view.findViewById(R.id.fragment_manage_friends_list)
+            viewModel.friends.observe(requireActivity()) { friends ->
+                val adapter: FriendsArrayAdapter = FriendsArrayAdapter(friends, requireActivity(), viewModel, tempUser)
+                listView.adapter = adapter
+            }
         }
-
         return view
     }
 }
