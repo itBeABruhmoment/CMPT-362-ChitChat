@@ -47,6 +47,7 @@ class ViewFriendRequestsFragment : Fragment() {
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
 
             view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
+                val currentUserEmail = currentUser.email
                 val user = userEmail.text.toString()
                 if (user == "") {
                     Toast.makeText(requireContext(), "User email required", Toast.LENGTH_SHORT).show()
@@ -56,7 +57,9 @@ class ViewFriendRequestsFragment : Fragment() {
                         .child("Users")
                         .get().addOnSuccessListener {
                             for (snapshot in it.children) {
-                                if (snapshot.child("email").value == user) {
+                                val email: String? = snapshot.child("email").getValue(String::class.java)
+                                Log.d("email", email.toString())
+                                if (email != null && email == user /* && email != currentUserEmail */) {
                                     recipientId = snapshot.key.toString()
                                     viewModel.addFriendRequest(currentUser.uid, recipientId)
                                     userEmail.text.clear()

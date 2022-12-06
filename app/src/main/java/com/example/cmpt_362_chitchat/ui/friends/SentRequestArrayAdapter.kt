@@ -33,6 +33,7 @@ class SentRequestArrayAdapter(
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View = View.inflate(activity, R.layout.fragment_friend_sent_item, null)
         view.isClickable = true
+        /*
         view.setOnClickListener {
             // get dimensions
             val displayMetrics = DisplayMetrics()
@@ -48,11 +49,14 @@ class SentRequestArrayAdapter(
             alertDialog.show();
             alertDialog.getWindow()?.setLayout(width, height);
         }
+
+         */
         view.findViewById<TextView>(R.id.fragment_friend_sent_item_name).text = requests[position].userName
         view.findViewById<ImageButton>(R.id.fragment_friend_sent_item_reject).setOnClickListener() {
             Log.i("FriendsActivity", "remove request click")
             viewModel.removeFriendRequest(requests[position].request)
         }
+        viewModel.loadPhoto(requests[position].userName, view.findViewById(R.id.fragment_friend_sent_item_image))
         return view
     }
 }

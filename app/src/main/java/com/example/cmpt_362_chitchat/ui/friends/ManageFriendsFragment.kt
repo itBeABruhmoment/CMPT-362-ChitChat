@@ -35,14 +35,13 @@ class ManageFriendsFragment : Fragment() {
             Log.i("FriendsActivity", "user not null, continue")
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(tempUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
-        }
 
-        val listView: ListView = view.findViewById(R.id.fragment_manage_friends_list)
-        viewModel.friends.observe(requireActivity()) { friends ->
-            val adapter: FriendsArrayAdapter = FriendsArrayAdapter(friends, requireActivity(), viewModel)
-            listView.adapter = adapter
+            val listView: ListView = view.findViewById(R.id.fragment_manage_friends_list)
+            viewModel.friends.observe(requireActivity()) { friends ->
+                val adapter: FriendsArrayAdapter = FriendsArrayAdapter(friends, requireActivity(), viewModel, tempUser)
+                listView.adapter = adapter
+            }
         }
-
         return view
     }
 }

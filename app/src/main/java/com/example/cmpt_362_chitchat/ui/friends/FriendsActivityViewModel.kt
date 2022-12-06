@@ -516,6 +516,12 @@ class FriendsActivityViewModel(private val user: FirebaseUser) : ViewModel() {
 
         }
 
+        class DirectMessagingRoom(
+            var owner: String = "",
+            var otherUser: String = "",
+            var roomId: String = "") {
+        }
+
         class FriendRequestEntry {
             public lateinit var userName: String
             public lateinit var request: FriendRequest
