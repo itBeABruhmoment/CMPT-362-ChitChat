@@ -1,5 +1,6 @@
 package com.example.cmpt_362_chitchat.ui.chatRoom
 
+import android.app.AlertDialog
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
@@ -67,6 +68,7 @@ class ChatRoomActivity: AppCompatActivity() {
         database = FirebaseDatabase.getInstance().reference
 
         chatRoomName = intent.getStringExtra("chatRoomName").toString()
+
         supportActionBar?.title = chatRoomName
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -75,8 +77,7 @@ class ChatRoomActivity: AppCompatActivity() {
         chatRoom = intent.getStringExtra("chatRoomId").toString()
         chatRoomType= intent.getStringExtra("chatRoomType").toString()
         viewModelFactory = ChatRoomViewModelFactory(chatRoom, chatRoomType)
-        chatRoomViewModel =
-            ViewModelProvider(this, viewModelFactory)[ChatRoomViewModel::class.java]
+        chatRoomViewModel = ViewModelProvider(this, viewModelFactory)[ChatRoomViewModel::class.java]
 
         recyclerView = findViewById(R.id.recycler_view)
         messageBox = findViewById(R.id.message)
@@ -90,9 +91,17 @@ class ChatRoomActivity: AppCompatActivity() {
             imagePreview.visibility = View.GONE
             cancelImage.visibility = View.GONE
         }
-        messageList = ArrayList()
-        messageAdapter = MessageAdapter(this, messageList, sendUID, hashMapOf())
 
+        setUpImageKeyboardSupport()
+
+        setUpMessageAndParticipantMonitoring()
+
+        sendMessageToFirebase()
+
+        setUpVideoCall()
+    }
+
+    private fun setUpImageKeyboardSupport() {
         messageBox.setKeyBoardInputCallbackListener(object : KeyBoardInputCallbackListener {
             override fun onCommitContent(
                 inputContentInfo: InputContentInfoCompat?,
@@ -107,6 +116,11 @@ class ChatRoomActivity: AppCompatActivity() {
                 cancelImage.visibility = View.VISIBLE
             }
         })
+    }
+
+    private fun setUpMessageAndParticipantMonitoring() {
+        messageList = ArrayList()
+        messageAdapter = MessageAdapter(this, messageList, sendUID, hashMapOf())
 
         chatRoomViewModel.participants.observe(this) { it ->
             messageAdapter.replace(it)
@@ -136,7 +150,9 @@ class ChatRoomActivity: AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
+    }
 
+    private fun sendMessageToFirebase() {
         sendButton.setOnClickListener {
             println("Clicked")
 
@@ -198,7 +214,9 @@ class ChatRoomActivity: AppCompatActivity() {
                 }
             }
         }
+    }
 
+    private fun setUpVideoCall() {
         // Initialize video call server URL
         try {
             val serverURL = URL("https://meet.jit.si")
@@ -210,7 +228,14 @@ class ChatRoomActivity: AppCompatActivity() {
         } catch (e: MalformedURLException) {
             e.printStackTrace()
         }
+    }
 
+    private fun videoCall() {
+        val options:JitsiMeetConferenceOptions = JitsiMeetConferenceOptions.Builder()
+            .setRoom(chatRoom)
+            .setWelcomePageEnabled(false)
+            .build()
+        JitsiMeetActivity.launch(this, options)
     }
 
     override fun onDestroy() {
@@ -288,14 +313,6 @@ class ChatRoomActivity: AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
-    }
-
-    private fun videoCall() {
-        val options:JitsiMeetConferenceOptions = JitsiMeetConferenceOptions.Builder()
-            .setRoom(chatRoom)
-            .setWelcomePageEnabled(false)
-            .build()
-        JitsiMeetActivity.launch(this, options)
     }
 
 }
