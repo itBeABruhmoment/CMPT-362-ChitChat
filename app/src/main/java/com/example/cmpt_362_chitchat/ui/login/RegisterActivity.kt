@@ -82,10 +82,10 @@ class RegisterActivity : AppCompatActivity() {
             ) {
 
                 // If First and Last name is left empty. Set it to an Empty String to prevent it from showing as Null in ProfileActivity
-                if (!!firstname.nonEmpty()){
+                if (firstname.nonEmpty() == false){
                     firstname.setText("")
                 }
-                if (!!lastname.nonEmpty()!!){
+                if (lastname.nonEmpty() == false){
                     lastname.setText("")
                 }
                 selectedGender = findViewById(gender.checkedRadioButtonId)
