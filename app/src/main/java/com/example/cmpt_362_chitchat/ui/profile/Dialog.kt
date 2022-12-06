@@ -13,8 +13,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
 
-
-
 class Dialog : DialogFragment(), DialogInterface.OnClickListener {
     companion object {
         const val DIALOG_KEY = "DIALOG"
@@ -113,11 +111,22 @@ class Dialog : DialogFragment(), DialogInterface.OnClickListener {
                 )
                 viewModel.setGender("") //clean viewModel
                 builder.setView(view)
-                builder.setTitle("Please select your gender")
-                builder.setSingleChoiceItems(genderOptions, -1,
-                    DialogInterface.OnClickListener { dialog, item ->
-                        viewModel.setGender(genderOptions.get(item))
-                    })
+                val radioGroup = view.findViewById<RadioGroup>(R.id.genderRadio)
+                radioGroup.setOnCheckedChangeListener { radioGroup, optionId ->
+                    run {
+                        when (optionId) {
+                            R.id.maleRadio -> {
+                                viewModel.setGender("Male")
+                            }
+                            R.id.femaleRadio -> {
+                                viewModel.setGender("Female")
+                            }
+                            R.id.otherRadio -> {
+                                viewModel.setGender("Other")
+                            }
+                        }
+                    }
+                }
                 viewModel.setDialogID(dialogID)
             }
 

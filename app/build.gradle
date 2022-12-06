@@ -83,4 +83,6 @@ dependencies {
 
     implementation ('org.jitsi.react:jitsi-meet-sdk:2+')
     implementation 'com.github.bumptech.glide:glide:4.9.0'
+
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
 }
