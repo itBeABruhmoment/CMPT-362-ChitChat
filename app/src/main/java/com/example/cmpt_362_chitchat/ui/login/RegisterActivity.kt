@@ -19,6 +19,9 @@ import com.google.firebase.ktx.Firebase
 import com.wajahatkarim3.easyvalidation.core.view_ktx.nonEmpty
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validEmail
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 import java.time.Month
 
 class RegisterActivity : AppCompatActivity() {
@@ -33,6 +36,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var dob: DatePicker
     private lateinit var email: EditText
     private lateinit var password: EditText
+    private lateinit var passwordConfirm: EditText
     private lateinit var username: EditText
     private lateinit var register: Button
 
@@ -40,12 +44,13 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        setTitle("Register a new Account")
         auth = Firebase.auth
         database = FirebaseDatabase.getInstance().reference
 
         email = binding.registerEmail
         password = binding.registerPassword
+        passwordConfirm = binding.registerPasswordConfirm
         username = binding.registerUsername
         register = binding.registerBtn
         dob = binding.datePicker
@@ -60,17 +65,22 @@ class RegisterActivity : AppCompatActivity() {
             //Validating user input
             if (email.validator().validEmail().addErrorCallback{ email.error = "Invalid email"}.check()
                 && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().atleastOneNumber().addErrorCallback { password.error = "At least 5 characters with 1 upper case and 1 number" }.check()
+                && password.text.toString() == passwordConfirm.text.toString()
                 && username.validator().nonEmpty().minLength(4).addErrorCallback { username.error = "At least 4 characters" }.check()
-                && firstname.validator().nonEmpty().addErrorCallback { firstname.error = "Must not be empty" }.check()
-                && lastname.validator().nonEmpty().addErrorCallback { lastname.error = "Must not be empty" }.check()
                 && gender.checkedRadioButtonId != -1) {
+                if (!!firstname.nonEmpty()){
+                    firstname.setText("")
+                }
+                if (!!lastname.nonEmpty()!!){
+                    lastname.setText("")
+                }
                 selectedGender = findViewById(gender.checkedRadioButtonId)
                 val dob_string = "${Month.of(dob.month+1)}, ${dob.dayOfMonth}, ${dob.year}"
                 println("DEBUG TEST DOB: $dob_string")
                 if (username.text.toString() != "") {
                     //Creating account
                     addAccount(
-                        this,
+                        this@RegisterActivity,
                         email.text.toString(),
                         password.text.toString(),
                         username.text.toString(),
@@ -83,6 +93,11 @@ class RegisterActivity : AppCompatActivity() {
                     Toast.makeText(baseContext, "Username is required.", Toast.LENGTH_SHORT).show()
                 }
             }
+
+            if (password.text.toString() != passwordConfirm.text.toString()){
+                passwordConfirm.error = "Passwords do not match"
+            }
+
         }
 
     }
