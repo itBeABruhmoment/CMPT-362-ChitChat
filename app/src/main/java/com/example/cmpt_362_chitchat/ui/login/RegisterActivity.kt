@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 import java.time.Month
+import java.util.*
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -55,19 +56,32 @@ class RegisterActivity : AppCompatActivity() {
         register = binding.registerBtn
         dob = binding.datePicker
 
-        //val firstname = binding.registerfirstname
         firstname = binding.registerfirstname
         lastname = binding.registerlastname
         gender = binding.radioGroupGender
 
 
         register.setOnClickListener {
-            //Validating user input
-            if (email.validator().validEmail().addErrorCallback{ email.error = "Invalid email"}.check()
+
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            if (password.text.toString() != passwordConfirm.text.toString()){
+                passwordConfirm.error = "Passwords do not match"
+            }
+            if (currentYear - dob.year < 16){
+                Toast.makeText(this, "Invalid date (too young)!", Toast.LENGTH_SHORT).show()
+            }
+            /* Validating User Input
+             Checks Email, password, username and gender
+             */
+            if (username.validator().nonEmpty().minLength(4).addErrorCallback { username.error = "At least 4 characters" }.check()
+                && email.validator().validEmail().addErrorCallback{ email.error = "Invalid email"}.check()
                 && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().atleastOneNumber().addErrorCallback { password.error = "At least 5 characters with 1 upper case and 1 number" }.check()
                 && password.text.toString() == passwordConfirm.text.toString()
-                && username.validator().nonEmpty().minLength(4).addErrorCallback { username.error = "At least 4 characters" }.check()
-                && gender.checkedRadioButtonId != -1) {
+                && gender.checkedRadioButtonId != -1
+                && currentYear - dob.year >= 16
+            ) {
+
+                // If First and Last name is left empty. Set it to an Empty String to prevent it from showing as Null in ProfileActivity
                 if (!!firstname.nonEmpty()){
                     firstname.setText("")
                 }
@@ -76,9 +90,8 @@ class RegisterActivity : AppCompatActivity() {
                 }
                 selectedGender = findViewById(gender.checkedRadioButtonId)
                 val dob_string = "${Month.of(dob.month+1)}, ${dob.dayOfMonth}, ${dob.year}"
-                println("DEBUG TEST DOB: $dob_string")
                 if (username.text.toString() != "") {
-                    //Creating account
+                    //Creating account with given user inputs
                     addAccount(
                         this@RegisterActivity,
                         email.text.toString(),
@@ -89,24 +102,16 @@ class RegisterActivity : AppCompatActivity() {
                         selectedGender.text.toString(),
                         dob_string
                     )
-                } else {
-                    Toast.makeText(baseContext, "Username is required.", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            if (password.text.toString() != passwordConfirm.text.toString()){
-                passwordConfirm.error = "Passwords do not match"
-            }
-
         }
-
     }
 
     //Adding account to database, initial information includes Email, Password, Username, Name and Gender
     fun addAccount(context: Context, email: String, password: String, username: String, firstname: String, lastname: String, gender: String, dob: String) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this){
             if (it.isSuccessful){
-                println("DEBUG REGISTER SUCCESS: email: $email, password: $password")
                 auth.currentUser?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(username).build())
                 addAccountToDatabase(auth.currentUser?.uid, email, username, firstname, lastname, gender, dob)
                 auth.currentUser?.sendEmailVerification()?.addOnSuccessListener {
@@ -117,7 +122,7 @@ class RegisterActivity : AppCompatActivity() {
                 auth.signOut()
                 finish()
             } else {
-                println("REGISTER FAIL")
+                Toast.makeText(this, "An account with the email already exists. Please try a different email address", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -155,8 +160,6 @@ class RegisterActivity : AppCompatActivity() {
                 .child(userId)
                 .child("DOB")
                 .setValue(dob)
-        } else {
-            println("Debug: user not added to db correctly")
         }
     }
 }

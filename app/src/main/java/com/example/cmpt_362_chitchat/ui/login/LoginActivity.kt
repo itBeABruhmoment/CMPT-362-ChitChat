@@ -61,7 +61,6 @@ class LoginActivity : AppCompatActivity() {
 
             // disable login button unless both username / password is valid
             login.isEnabled = loginState.isDataValid
-
             if (loginState.usernameError != null) {
                 email.error = getString(loginState.usernameError)
             }
@@ -81,10 +80,9 @@ class LoginActivity : AppCompatActivity() {
 
                 auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString()).addOnCompleteListener(this) {
                     /*Email Verification
-                    If email is not verified, cannot login. However this would be annoying to have enabled while we are testing the app so it will be disabled
-                    until the app is finished
+                      After registration, sends a verification email to the email associated with the account. User will not be able to sign in until the email is verified
                      */
-                    if (it.isSuccessful){// && auth.currentUser?.isEmailVerified == true){
+                    if (it.isSuccessful && auth.currentUser?.isEmailVerified == true){
                         Toast.makeText(this, "Login Successful! Welcome!", Toast.LENGTH_SHORT).show()
                         intent = Intent(this, HomeActivity::class.java)
                         setResult(Activity.RESULT_OK)
@@ -133,6 +131,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    //checks if user is already signed in. If signed in, it will bring user to HomeActivity directly
     override fun onResume() {
         if (Firebase.auth.currentUser != null){
             intent = Intent(this, HomeActivity::class.java)
