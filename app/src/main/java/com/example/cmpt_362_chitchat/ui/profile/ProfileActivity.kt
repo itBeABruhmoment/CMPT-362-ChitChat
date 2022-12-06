@@ -90,8 +90,8 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
             if (it.exists()) {
                 //load username value
                 val username = it.child("username").value.toString()
-                val firstName = it.child("firstName").value.toString()
-                val lastName = it.child("lastName").value.toString()
+                val firstName = it.child("firstname").value.toString()
+                val lastName = it.child("lastname").value.toString()
                 val gender = it.child("gender").value.toString()
                 val dateOfBirth = it.child("DOB").value.toString()
                 //there is a delay for this method, so have to update adapter again (onStart code starts executing before this finish)
@@ -186,7 +186,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                     datePickerDialog.show()
                 }
 
-
                 "Gender" -> {
                     val newDialog  = Dialog()
                     val bundle = Bundle()
@@ -216,7 +215,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
     override fun onResume() {
         super.onResume()
-        println("DEBUG: RESUMED")
     }
 
     //load photo from database
@@ -269,7 +267,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
         if (requestCode == GALLERY && resultCode == RESULT_OK) {
             //display the photo that was selected, could also call database, but inefficient because takes up more time
             userImageUri = data?.data!!
-          //  userPhoto.setImageURI(data?.data)
             // get uid
             val uid = user.uid
             uploadPhoto(uid) // upload photo to database storage based on user id
@@ -321,7 +318,6 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
 
     }
 
-
     //for updating user data
     fun saveUserData(view: View) {
         user = FirebaseAuth.getInstance().currentUser!!
@@ -340,7 +336,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 val emailString = emailEditText.text.toString()
 
                 //checking if email is valid
-                if (!TextUtils.isEmpty(emailString) && Patterns.EMAIL_ADDRESS.matcher(emailString).matches()) {
+                if (Patterns.EMAIL_ADDRESS.matcher(emailString).matches()) {
                     //update email info
                     user.updateEmail(emailString)
                         .addOnCompleteListener { task ->
@@ -368,8 +364,8 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                                 startActivity(intent)
                                 finish()
                             } else {
-                                //assuming, double check alter
-                                Toast.makeText(applicationContext,"Email already in user. please select another email.",Toast.LENGTH_SHORT).show()
+                                //assuming
+                                Toast.makeText(applicationContext,"Email already in use. please select another email.",Toast.LENGTH_SHORT).show()
                             }
                         }
                 } else {
@@ -416,7 +412,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 val nameString = name.text.toString()
                 //no required check for name
                 database = FirebaseDatabase.getInstance().getReference("Users")
-                database.child(uid).child("firstName").setValue(nameString)
+                database.child(uid).child("firstname").setValue(nameString)
                 userInfo[1] = nameString
                 //dismiss dialog and let user know update
                 Toast.makeText(applicationContext,"first name successfully updated",Toast.LENGTH_SHORT).show()
@@ -441,14 +437,14 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 val nameString = name.text.toString()
                 //no required check for name
                 database = FirebaseDatabase.getInstance().getReference("Users")
-                database.child(uid).child("lastName").setValue(nameString)
+                database.child(uid).child("lastname").setValue(nameString)
                 userInfo[2] = nameString
                 //dismiss dialog and let user know update
                 Toast.makeText(applicationContext,"last name successfully updated",Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             } else {
                 //Note this sometimes happen, no clue as to why
-                println("DEBUG: user is null (SHOULD NEVER HAPPEN)")
+                Toast.makeText(applicationContext,"critical error detected. Please relog!",Toast.LENGTH_LONG).show()
             }
             //update view for adapter
             profileAdapter = ProfileAdapter(this, profileDescription, userInfo)
