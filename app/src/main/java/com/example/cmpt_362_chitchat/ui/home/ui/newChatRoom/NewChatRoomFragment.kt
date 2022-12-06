@@ -55,7 +55,7 @@ class NewChatRoomFragment : Fragment() {
         username = sharedPreferences.getString("username", "").toString()
 
         val newChatRoomViewModel =
-            ViewModelProvider(this).get(NewChatRoomViewModel::class.java)
+            ViewModelProvider(this).get(FriendsViewModel::class.java)
 
         val builder: AlertDialog.Builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Add Friends")
