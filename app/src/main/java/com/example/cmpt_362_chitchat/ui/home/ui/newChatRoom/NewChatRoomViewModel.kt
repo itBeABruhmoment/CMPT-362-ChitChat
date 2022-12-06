@@ -8,49 +8,62 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
 
-class NewChatRoomViewModel : ViewModel() {
+class FriendsViewModel : ViewModel() {
     private var database: DatabaseReference
     val friendIds = MutableLiveData(ArrayList<String>())
     val friendUsernames = MutableLiveData(ArrayList<String>())
+    private var friendListener: ValueEventListener
 
     init {
         val userId = Firebase.auth.currentUser?.uid.toString()
         database = FirebaseDatabase.getInstance().reference
 
+        friendListener = object: ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val currentFriendIds = ArrayList<String>()
+                val currentFriendUsernames = ArrayList<String>()
+                val taskList = mutableListOf<Task<DataSnapshot>>()
+
+                for (snap in snapshot.children) {
+                    currentFriendIds.add(snap.key.toString())
+
+                    val databaseReferenceTask: Task<DataSnapshot> =
+                        database
+                            .child("Users")
+                            .child(snap.key.toString())
+                            .child("username")
+                            .get()
+                    taskList.add(databaseReferenceTask)
+                }
+
+                val resultTask = Tasks.whenAll(taskList)
+                resultTask.addOnCompleteListener {
+                    for (task in taskList) {
+                        currentFriendUsernames.add(task.result.value.toString())
+                    }
+                    friendIds.value = currentFriendIds
+                    friendUsernames.value = currentFriendUsernames
+                }
+
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+        }
+
         database.child("Users")
             .child(userId)
             .child("friends")
-            .addValueEventListener(object: ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val currentFriendIds = ArrayList<String>()
-                    val currentFriendUsernames = ArrayList<String>()
-                    val taskList = mutableListOf<Task<DataSnapshot>>()
-
-                    for (snap in snapshot.children) {
-                        currentFriendIds.add(snap.key.toString())
-
-                        val databaseReferenceTask: Task<DataSnapshot> =
-                            database
-                                .child("Users")
-                                .child(snap.key.toString())
-                                .child("username")
-                                .get()
-                        taskList.add(databaseReferenceTask)
-                    }
-
-                    val resultTask = Tasks.whenAll(taskList)
-                    resultTask.addOnCompleteListener {
-                        for (task in taskList) {
-                            currentFriendUsernames.add(task.result.value.toString())
-                        }
-                        friendIds.value = currentFriendIds
-                        friendUsernames.value = currentFriendUsernames
-                    }
-
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                }
-            })
+            .addValueEventListener(friendListener)
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        val userId = Firebase.auth.currentUser?.uid.toString()
+        database.child("Users")
+            .child(userId)
+            .child("friends")
+            .removeEventListener(friendListener)
+    }
+
 }

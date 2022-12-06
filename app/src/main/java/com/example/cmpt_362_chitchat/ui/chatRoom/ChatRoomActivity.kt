@@ -1,6 +1,7 @@
 package com.example.cmpt_362_chitchat.ui.chatRoom
 
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
@@ -8,7 +9,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.ListView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.inputmethod.InputContentInfoCompat
@@ -19,6 +22,7 @@ import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.data.Message
 import com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.CustomEditText
 import com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.CustomEditText.KeyBoardInputCallbackListener
+import com.example.cmpt_362_chitchat.ui.home.ui.newChatRoom.FriendsViewModel
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
@@ -52,6 +56,14 @@ class ChatRoomActivity: AppCompatActivity() {
     private lateinit var viewModelFactory: ChatRoomViewModelFactory
     private lateinit var chatRoomViewModel: ChatRoomViewModel
 
+    // Friend code borrowed from NewChatRoomFragment
+    private lateinit var friendsViewModel: FriendsViewModel
+    private lateinit var friendsUserIDs: ArrayList<String>
+    private lateinit var friendUsernames: ArrayList<String>
+    private lateinit var friendsSelected: BooleanArray
+    private lateinit var participantsBuilder: AlertDialog.Builder
+    private lateinit var friendsBuilder: AlertDialog.Builder
+
     private lateinit var sendUID: String
     private lateinit var chatRoom: String
     private lateinit var chatRoomType: String
@@ -79,6 +91,20 @@ class ChatRoomActivity: AppCompatActivity() {
         viewModelFactory = ChatRoomViewModelFactory(chatRoom, chatRoomType)
         chatRoomViewModel = ViewModelProvider(this, viewModelFactory)[ChatRoomViewModel::class.java]
 
+        participantsBuilder = AlertDialog.Builder(this)
+        participantsBuilder.setTitle("Participants")
+        // Friend View Model to observe friend list (borrowed from NewChatRoomFragment)
+        friendsViewModel = ViewModelProvider(this)[FriendsViewModel::class.java]
+        friendsBuilder = AlertDialog.Builder(this)
+        friendsBuilder.setTitle("Friends")
+        friendsViewModel.friendIds.observe(this) { it ->
+            friendsUserIDs = it
+        }
+        friendsViewModel.friendUsernames.observe(this) { it ->
+            friendUsernames = it
+            updateFriendOptions()
+        }
+
         recyclerView = findViewById(R.id.recycler_view)
         messageBox = findViewById(R.id.message)
         sendButton = findViewById(R.id.send_button)
@@ -99,6 +125,20 @@ class ChatRoomActivity: AppCompatActivity() {
         sendMessageToFirebase()
 
         setUpVideoCall()
+    }
+
+    private fun updateFriendOptions() {
+        // Ignore friends already in chat room
+        val participantIDs = ArrayList<String>(chatRoomViewModel.participants.value!!.values)
+        for (id in participantIDs) {
+            friendsUserIDs.remove(id)
+            friendUsernames.remove(chatRoomViewModel.participants.value!![id])
+        }
+        friendsSelected = BooleanArray(friendsViewModel.friendIds.value!!.size) { false }
+
+        friendsBuilder.setMultiChoiceItems(friendUsernames.toTypedArray(), friendsSelected) { _, which, isChecked ->
+            friendsSelected[which] = isChecked
+        }
     }
 
     private fun setUpImageKeyboardSupport() {
@@ -255,6 +295,11 @@ class ChatRoomActivity: AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_chat_room, menu)
+        // Disable participants view in public chat rooms
+        if(intent.getStringExtra("chatRoomType").toString() == "Public") {
+            menu!!.getItem(0).isVisible = false
+            menu.getItem(1).isVisible = false
+        }
         return true
     }
 
@@ -264,8 +309,16 @@ class ChatRoomActivity: AppCompatActivity() {
                 deleteChatRoom()
                 return true
             }
+            R.id.add_friends -> {
+                showAddFriendsDialog()
+                return true
+            }
             R.id.video_call -> {
                 videoCall()
+                return true
+            }
+            R.id.participants -> {
+                showParticipants()
                 return true
             }
             android.R.id.home -> {
@@ -274,6 +327,77 @@ class ChatRoomActivity: AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun showAddFriendsDialog() {
+        friendsBuilder.setPositiveButton("Ok") { _, _ -> addFriends() }
+        friendsBuilder.setNegativeButton("Cancel", null)
+
+        val alertDialog: AlertDialog = friendsBuilder.create()
+        alertDialog.show()
+
+        val newParticipantIDs = ArrayList<String>()
+        for ((index, isFriendSelected) in friendsSelected.withIndex()) {
+            if (isFriendSelected) {
+                newParticipantIDs.add(friendsUserIDs[index])
+            }
+        }
+    }
+
+    private fun addFriends() {
+
+        val newParticipantIDs = ArrayList<String>()
+        for ((index, isFriendSelected) in friendsSelected.withIndex()) {
+            if (isFriendSelected) {
+                newParticipantIDs.add(friendsUserIDs[index])
+            }
+        }
+
+        database
+            .child("ChatRooms")
+            .child(chatRoomType)
+            .child(chatRoom)
+            .get().addOnCompleteListener {
+                    val ownerId = it.result.child("ownerId").value
+                    if (sendUID == ownerId) {
+                        println("HERE")
+                        for (participant in newParticipantIDs) {
+                            println(participant)
+                            database.child("Users")
+                                .child(participant)
+                                .child("ChatRooms")
+                                .child(chatRoom)
+                                .setValue(true)
+                        }
+                    } else {
+                        Toast.makeText(
+                            baseContext, "You don't have permission.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+            }
+
+    }
+
+    private fun showParticipants() {
+
+        val participantUsernames = ArrayList<String>(chatRoomViewModel.participants.value!!.values)
+
+        val listView = ListView(this)
+        val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
+            this,
+            android.R.layout.simple_list_item_1,
+            android.R.id.text1,
+            participantUsernames
+        )
+        listView.adapter = adapter
+
+        participantsBuilder.setView(listView)
+        participantsBuilder.setPositiveButton("Ok", null)
+        participantsBuilder.setNegativeButton("Cancel", null)
+
+        val alertDialog: AlertDialog = participantsBuilder.create()
+        alertDialog.show()
     }
 
     private fun deleteChatRoom() {
