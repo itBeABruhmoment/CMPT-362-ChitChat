@@ -28,5 +28,9 @@ class RecoverPasswordActivity : AppCompatActivity() {
             Toast.makeText(this@RecoverPasswordActivity, "Successfully sent reset link to ${email.text}", Toast.LENGTH_SHORT).show()
         }
 
+        cancelbtn.setOnClickListener{
+            finish()
+        }
+
     }
 }

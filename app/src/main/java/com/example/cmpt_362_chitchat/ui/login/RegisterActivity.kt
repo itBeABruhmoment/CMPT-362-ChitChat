@@ -19,6 +19,7 @@ import com.google.firebase.ktx.Firebase
 import com.wajahatkarim3.easyvalidation.core.view_ktx.nonEmpty
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validEmail
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
+import java.time.Month
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -57,14 +58,14 @@ class RegisterActivity : AppCompatActivity() {
 
         register.setOnClickListener {
             //Validating user input
-            if (email.validator().validEmail().addErrorCallback {email.error = it}.check()
-                && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().addErrorCallback { password.error = it }.check()
-                && username.validator().nonEmpty().check()
-                && firstname.validator().nonEmpty().check()
-                && lastname.validator().nonEmpty().check()
+            if (email.validator().validEmail().addErrorCallback{ email.error = "Invalid email"}.check()
+                && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().atleastOneNumber().addErrorCallback { password.error = "At least 5 characters with 1 upper case and 1 number" }.check()
+                && username.validator().nonEmpty().minLength(4).addErrorCallback { username.error = "At least 4 characters" }.check()
+                && firstname.validator().nonEmpty().addErrorCallback { firstname.error = "Must not be empty" }.check()
+                && lastname.validator().nonEmpty().addErrorCallback { lastname.error = "Must not be empty" }.check()
                 && gender.checkedRadioButtonId != -1) {
                 selectedGender = findViewById(gender.checkedRadioButtonId)
-                val dob_string = "${dob.month}, ${dob.dayOfMonth}, ${dob.year}"
+                val dob_string = "${Month.of(dob.month+1)}, ${dob.dayOfMonth}, ${dob.year}"
                 println("DEBUG TEST DOB: $dob_string")
                 if (username.text.toString() != "") {
                     //Creating account

@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">CMPT-362-ChitChat</string>
     <!-- Strings related to login -->
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="prompt_username">Username</string>
+    <string name="prompt_email">Email*</string>
+    <string name="prompt_password">Password*</string>
+    <string name="prompt_username">Username*</string>
     <string name="prompt_name">Name</string>
-    <string name="prompt_firstname">First Name</string>
-    <string name="prompt_lastname">Last Name</string>
+    <string name="prompt_firstname">First Name*</string>
+    <string name="prompt_lastname">Last Name*</string>
     <string name="prompt_gender">Gender</string>
     <string name="prompt_user">Search User</string>
     <string name="male">Male</string>
@@ -36,7 +36,8 @@
     <string name="sendemail">Send</string>
     <string name="back">Back to Login</string>
     <string name="other">Other</string>
-    <string name="prompt_dob">Please enter your date of birth</string>
+    <string name="prompt_dob">Please enter your date of birth*</string>
+    <string name="gender">Please select your Gender*</string>
 
     <!-- friends activity related -->
     <string name="view_profile">Profile</string>
