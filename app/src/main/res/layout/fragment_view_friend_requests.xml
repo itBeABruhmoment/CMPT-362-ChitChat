@@ -9,25 +9,27 @@
         android:id="@+id/search_user"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="84dp"
+        android:layout_marginTop="24dp"
         android:autofillHints="@string/prompt_name"
         android:hint="@string/enter_user_email"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"/>
 
     <Button
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/add_friend"
         android:id="@+id/fragment_view_friend_requests_test"
-        app:layout_constraintTop_toBottomOf="@id/search_user" />
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_user"
+        android:layout_marginLeft="10dp"/>
 
     <TextView
         android:id="@+id/fragment_view_friend_requests_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Friend Requests"
-        app:layout_constraintTop_toBottomOf="@id/fragment_view_friend_requests_test"
+        app:layout_constraintTop_toBottomOf="@+id/fragment_view_friend_requests_test"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"

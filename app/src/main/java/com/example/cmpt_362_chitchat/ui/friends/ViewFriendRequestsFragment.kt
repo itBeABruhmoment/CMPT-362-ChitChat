@@ -60,7 +60,7 @@ class ViewFriendRequestsFragment : Fragment() {
                             for (snapshot in it.children) {
                                 val email: String? = snapshot.child("email").getValue(String::class.java)
                                 Log.d("email", email.toString())
-                                if (email != null && email == user /* && email != currentUserEmail */) {
+                                if (email != null && email == user  && email != currentUserEmail) {
                                     recipientId = snapshot.key.toString()
                                     viewModel.addFriendRequest(currentUser.uid, recipientId)
                                     userEmail.text.clear()
