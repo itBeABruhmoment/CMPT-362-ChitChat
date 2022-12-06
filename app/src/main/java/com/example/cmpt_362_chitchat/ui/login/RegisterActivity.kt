@@ -19,6 +19,11 @@ import com.google.firebase.ktx.Firebase
 import com.wajahatkarim3.easyvalidation.core.view_ktx.nonEmpty
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validEmail
 import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
+import java.time.Month
+import java.util.*
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -32,6 +37,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var dob: DatePicker
     private lateinit var email: EditText
     private lateinit var password: EditText
+    private lateinit var passwordConfirm: EditText
     private lateinit var username: EditText
     private lateinit var register: Button
 
@@ -39,37 +45,55 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        setTitle("Register a new Account")
         auth = Firebase.auth
         database = FirebaseDatabase.getInstance().reference
 
         email = binding.registerEmail
         password = binding.registerPassword
+        passwordConfirm = binding.registerPasswordConfirm
         username = binding.registerUsername
         register = binding.registerBtn
         dob = binding.datePicker
 
-        //val firstname = binding.registerfirstname
         firstname = binding.registerfirstname
         lastname = binding.registerlastname
         gender = binding.radioGroupGender
 
 
         register.setOnClickListener {
-            //Validating user input
-            if (email.validator().validEmail().addErrorCallback {email.error = it}.check()
-                && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().addErrorCallback { password.error = it }.check()
-                && username.validator().nonEmpty().check()
-                && firstname.validator().nonEmpty().check()
-                && lastname.validator().nonEmpty().check()
-                && gender.checkedRadioButtonId != -1) {
+
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            if (password.text.toString() != passwordConfirm.text.toString()){
+                passwordConfirm.error = "Passwords do not match"
+            }
+            if (currentYear - dob.year < 16){
+                Toast.makeText(this, "Invalid date (too young)!", Toast.LENGTH_SHORT).show()
+            }
+            /* Validating User Input
+             Checks Email, password, username and gender
+             */
+            if (username.validator().nonEmpty().minLength(4).addErrorCallback { username.error = "At least 4 characters" }.check()
+                && email.validator().validEmail().addErrorCallback{ email.error = "Invalid email"}.check()
+                && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().atleastOneNumber().addErrorCallback { password.error = "At least 5 characters with 1 upper case and 1 number" }.check()
+                && password.text.toString() == passwordConfirm.text.toString()
+                && gender.checkedRadioButtonId != -1
+                && currentYear - dob.year >= 16
+            ) {
+
+                // If First and Last name is left empty. Set it to an Empty String to prevent it from showing as Null in ProfileActivity
+                if (!!firstname.nonEmpty()){
+                    firstname.setText("")
+                }
+                if (!!lastname.nonEmpty()!!){
+                    lastname.setText("")
+                }
                 selectedGender = findViewById(gender.checkedRadioButtonId)
-                val dob_string = "${dob.month}, ${dob.dayOfMonth}, ${dob.year}"
-                println("DEBUG TEST DOB: $dob_string")
+                val dob_string = "${Month.of(dob.month+1)}, ${dob.dayOfMonth}, ${dob.year}"
                 if (username.text.toString() != "") {
-                    //Creating account
+                    //Creating account with given user inputs
                     addAccount(
-                        this,
+                        this@RegisterActivity,
                         email.text.toString(),
                         password.text.toString(),
                         username.text.toString(),
@@ -78,19 +102,16 @@ class RegisterActivity : AppCompatActivity() {
                         selectedGender.text.toString(),
                         dob_string
                     )
-                } else {
-                    Toast.makeText(baseContext, "Username is required.", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
 
+        }
     }
 
     //Adding account to database, initial information includes Email, Password, Username, Name and Gender
     fun addAccount(context: Context, email: String, password: String, username: String, firstname: String, lastname: String, gender: String, dob: String) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this){
             if (it.isSuccessful){
-                println("DEBUG REGISTER SUCCESS: email: $email, password: $password")
                 auth.currentUser?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(username).build())
                 addAccountToDatabase(auth.currentUser?.uid, email, username, firstname, lastname, gender, dob)
                 auth.currentUser?.sendEmailVerification()?.addOnSuccessListener {
@@ -101,7 +122,7 @@ class RegisterActivity : AppCompatActivity() {
                 auth.signOut()
                 finish()
             } else {
-                println("REGISTER FAIL")
+                Toast.makeText(this, "An account with the email already exists. Please try a different email address", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -139,8 +160,6 @@ class RegisterActivity : AppCompatActivity() {
                 .child(userId)
                 .child("DOB")
                 .setValue(dob)
-        } else {
-            println("Debug: user not added to db correctly")
         }
     }
 }

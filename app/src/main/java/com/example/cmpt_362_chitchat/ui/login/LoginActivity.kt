@@ -61,7 +61,6 @@ class LoginActivity : AppCompatActivity() {
 
             // disable login button unless both username / password is valid
             login.isEnabled = loginState.isDataValid
-
             if (loginState.usernameError != null) {
                 email.error = getString(loginState.usernameError)
             }
@@ -81,27 +80,22 @@ class LoginActivity : AppCompatActivity() {
 
                 auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString()).addOnCompleteListener(this) {
                     /*Email Verification
-                    If email is not verified, cannot login. However this would be annoying to have enabled while we are testing the app so it will be disabled
-                    until the app is finished
+                      After registration, sends a verification email to the email associated with the account. User will not be able to sign in until the email is verified
                      */
-                    if (it.isSuccessful){// && auth.currentUser?.isEmailVerified == true){
+                    if (it.isSuccessful && auth.currentUser?.isEmailVerified == true){
+                        Toast.makeText(this, "Login Successful! Welcome!", Toast.LENGTH_SHORT).show()
                         intent = Intent(this, HomeActivity::class.java)
                         setResult(Activity.RESULT_OK)
                         startActivity(intent)
                         finish()
-                    }else if(auth.currentUser?.isEmailVerified != true) {
-                        println("DEBUG: EMAIL NOT VERIFIED")
+                    }else if(it.isSuccessful && auth.currentUser!!.isEmailVerified != true) {
+                        Toast.makeText(this, "Email has not yet been verified. Please verify your email address and try again", Toast.LENGTH_SHORT).show()
                     }else{
-                        println("DEBUG: LOGIN FAILED")
+                        Toast.makeText(this, "Failed to Login. Please check your email and password and try again", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
             setResult(Activity.RESULT_OK)
-
-            //Complete and destroy login activity once successful
-            // was causing problems
-            //finish()
-
         })
 
         email.afterTextChanged {
@@ -137,15 +131,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    //checks if user is already signed in. If signed in, it will bring user to HomeActivity directly
     override fun onResume() {
         if (Firebase.auth.currentUser != null){
-            println("DEBUG: USER ALREADY SIGNED IN")
             intent = Intent(this, HomeActivity::class.java)
             setResult(Activity.RESULT_OK)
             startActivity(intent)
             finish()
-        }else{
-            println("DEBUG: NO USER SIGNED IN")
         }
         super.onResume()
     }
@@ -153,7 +145,6 @@ class LoginActivity : AppCompatActivity() {
     private fun updateUiWithUser(model: LoggedInUserView) {
         val welcome = getString(R.string.welcome)
         val displayName = model.displayName
-        // TODO : initiate successful logged in experience
         Toast.makeText(
             applicationContext,
             "$welcome $displayName",

@@ -1,18 +1,19 @@
 <resources>
     <string name="app_name">CMPT-362-ChitChat</string>
     <!-- Strings related to login -->
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="prompt_username">Username</string>
+    <string name="prompt_email">Email*</string>
+    <string name="prompt_password">Password*</string>
+    <string name="prompt_username">Username*</string>
     <string name="prompt_name">Name</string>
     <string name="prompt_firstname">First Name</string>
     <string name="prompt_lastname">Last Name</string>
     <string name="prompt_gender">Gender</string>
     <string name="prompt_user">Search User</string>
+    <string name="prompt_registeruser">All fields marked with * are required</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
     <string name="action_sign_in">Login</string>
-    <string name="register">Register</string>
+    <string name="register">Register a New Account!</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid email</string>
@@ -24,8 +25,8 @@
     <string name="title_new_chatroom">New ChatRoom</string>
     <string name="title_profile">Profile</string>
     <string name="add">Add</string>
-    <string name="forgot">Forgotten your username or password?</string>
-    <string name="prompt_forgotemail">Please enter the email of the account you would like to reset ther password for</string>
+    <string name="forgot">Forgot your username or password? Click Here!</string>
+    <string name="prompt_forgotemail">Please enter the email of the account you would like to reset the password for</string>
     <string name="sample_message">Sample message</string>
     <string name="type_a_message">Type a message</string>
     <string name="sent_message">Sent message</string>
@@ -36,7 +37,9 @@
     <string name="sendemail">Send</string>
     <string name="back">Back to Login</string>
     <string name="other">Other</string>
-    <string name="prompt_dob">Please enter your date of birth</string>
+    <string name="prompt_dob">Please enter your date of birth*</string>
+    <string name="gender">Please Select Your Gender*</string>
+    <string name="prompt_passwordconfirm">Confirm Password*</string>
 
     <!-- friends activity related -->
     <string name="start_chatroom">Start Chatroom</string>
