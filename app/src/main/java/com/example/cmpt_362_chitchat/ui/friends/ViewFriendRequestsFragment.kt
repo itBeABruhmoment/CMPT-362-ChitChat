@@ -46,6 +46,7 @@ class ViewFriendRequestsFragment : Fragment() {
             val viewModelFactory: FriendsActivityViewModelFactory = FriendsActivityViewModelFactory(currentUser)
             viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(FriendsActivityViewModel::class.java)
 
+            // logic of friend adding via email
             view.findViewById<Button>(R.id.fragment_view_friend_requests_test).setOnClickListener {
                 val currentUserEmail = currentUser.email
                 val user = userEmail.text.toString()
@@ -70,6 +71,7 @@ class ViewFriendRequestsFragment : Fragment() {
             }
         }
 
+        // init list view for viewing received friend requests
         friendRequestsListView = view.findViewById(R.id.fragment_view_friend_requests_list)
         viewModel.friendsRequests.observe(requireActivity()) { requests ->
             Log.i("FriendsActivity", "friend request live data update ${requests.size}")
@@ -80,6 +82,8 @@ class ViewFriendRequestsFragment : Fragment() {
             )
             friendRequestsListView.adapter = adapter
         }
+
+        // init list view for viewing sent friend requests
         sentRequestsListView = view.findViewById(R.id.fragment_view_sent_requests_list)
         viewModel.sentRequests.observe(requireActivity()) { sent ->
             Log.i("FriendsActivity", "sent request live data update ${sent.size}")

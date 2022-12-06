@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.*
 import com.example.cmpt_362_chitchat.R
 import com.example.cmpt_362_chitchat.ui.chatRoom.ChatRoomActivity
+import com.example.cmpt_362_chitchat.ui.home.HomeActivity
 import com.google.firebase.auth.FirebaseUser
 import java.util.*
 import kotlin.collections.ArrayList
@@ -46,11 +47,14 @@ class FriendsArrayAdapter(
             popUp.menuInflater.inflate(R.menu.friend_kebab_menu, popUp.menu)
             popUp.setOnMenuItemClickListener() {
                 val picked: Int = it.itemId
-                if(picked == R.id.friend_kebab_menu_profile) {
-                    Log.i("Friends Activity", "profile")
+                if(picked == R.id.friend_kebab_menu_make_chatroom) {
+                    Log.i("Friends Activity", "start chat")
+                    val intent: Intent = Intent(activity, HomeActivity::class.java)
+                    intent.putExtra(HomeActivity.START_NAVIGATED_TO_INTENT, R.id.navigation_new_chatroom)
+                    activity.startActivity(intent)
                 } else if(picked == R.id.friend_kebab_menu_unfriend) {
                     Log.i("Friends Activity", "unfriend")
-                    viewModel.removeFriend(friend.uid )
+                    viewModel.removeFriend(friend.uid)
                 }
                 return@setOnMenuItemClickListener true
             }

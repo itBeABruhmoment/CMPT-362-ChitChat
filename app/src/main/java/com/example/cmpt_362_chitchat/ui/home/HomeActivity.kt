@@ -48,6 +48,8 @@ class HomeActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        navController.navigate(intent.getIntExtra(START_NAVIGATED_TO_INTENT, R.id.navigation_private_chatrooms))
     }
 
     private fun getUsername() {
@@ -65,5 +67,9 @@ class HomeActivity : AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
+    }
+
+    companion object {
+        val START_NAVIGATED_TO_INTENT: String = "start_navigated_to"
     }
 }
