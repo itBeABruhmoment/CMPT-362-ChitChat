@@ -32,6 +32,7 @@ import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
 import java.io.File
 import java.util.*
 
@@ -378,7 +379,7 @@ class ProfileActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener 
                 val newcPassString = cnewPass.text.toString()
 
                 //check if new pass is acceptable
-                if (newPassString == newcPassString && newPassString.length > 5) {
+                if (newPassString == newcPassString && newPassString.validator().nonEmpty().minLength(5).atleastOneUpperCase().atleastOneNumber().check()) {
                     user.updatePassword(newPassString)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
