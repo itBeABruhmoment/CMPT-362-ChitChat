@@ -6,71 +6,127 @@
     android:layout_height="match_parent"
     tools:context=".ui.login.RegisterActivity">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
-        android:layout_marginTop="40dp"
-        android:text="@string/register"
-        android:textSize="24sp"
+    <ScrollView
+        android:id="@+id/scrollView2"
+        android:layout_width="394dp"
+        android:layout_height="566dp"
+        app:layout_constraintBottom_toTopOf="@+id/registerBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.47"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.541">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/registerUsername"
+                android:layout_width="411dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:autofillHints="@string/prompt_username"
+                android:hint="@string/prompt_username"
+                android:imeActionLabel="@string/action_sign_in_short"
+                android:imeOptions="actionDone"
+                android:selectAllOnFocus="true" />
+
+            <EditText
+                android:id="@+id/registerEmail"
+                android:layout_width="411dp"
+                android:layout_height="wrap_content"
+                android:autofillHints="@string/prompt_email"
+                android:hint="@string/prompt_email"
+                android:inputType="textEmailAddress"
+                android:selectAllOnFocus="true"
+                tools:layout_editor_absoluteX="0dp" />
+
+            <EditText
+                android:id="@+id/registerPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:autofillHints="@string/prompt_password"
+                android:hint="@string/prompt_password"
+                android:imeActionLabel="@string/action_sign_in_short"
+                android:imeOptions="actionDone"
+                android:inputType="textPassword"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/registerEmail" />
+
+            <EditText
+                android:id="@+id/registerfirstname"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/prompt_firstname" />
+
+            <EditText
+                android:id="@+id/registerlastname"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="@string/prompt_name"
+                android:hint="@string/prompt_lastname"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/registerfirstname" />
 
 
-    <EditText
-        android:id="@+id/registerlastname"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="84dp"
-        android:autofillHints="@string/prompt_name"
-        android:hint="@string/prompt_name"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+            <RadioGroup
+                android:id="@+id/radioGroupGender"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/male" />
+
+                <RadioButton
+                    android:id="@+id/radioButton2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/female" />
+
+                <RadioButton
+                    android:id="@+id/radioButton3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/other" />
+
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/prompt_dob"
+                android:paddingTop="20dp"
+                android:layout_gravity="center_horizontal"/>
+
+            <DatePicker
+                android:id="@+id/datePicker"
+                android:layout_width="256dp"
+                android:layout_height="138dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="32dp"
+                android:calendarViewShown="false"
+                android:datePickerMode="spinner"
+                android:spinnersShown="true" />
 
 
-    <EditText
-        android:id="@+id/registerEmail"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:autofillHints="@string/prompt_email"
-        android:hint="@string/prompt_email"
-        android:inputType="textEmailAddress"
-        android:selectAllOnFocus="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroupGender" />
+        </LinearLayout>
 
-    <EditText
-        android:id="@+id/registerPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:inputType="textPassword"
-        android:autofillHints="@string/prompt_password"
-        android:hint="@string/prompt_password"
-        android:imeActionLabel="@string/action_sign_in_short"
-        android:imeOptions="actionDone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/registerEmail" />
 
-    <EditText
-        android:id="@+id/registerUsername"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:selectAllOnFocus="true"
-        android:autofillHints="@string/prompt_username"
-        android:hint="@string/prompt_username"
-        android:imeActionLabel="@string/action_sign_in_short"
-        android:imeOptions="actionDone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/registerPassword" />
+    </ScrollView>
 
     <Button
         android:id="@+id/registerBtn"
@@ -83,25 +139,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <RadioGroup
-        android:id="@+id/radioGroupGender"
-        android:layout_width="257dp"
-        android:layout_height="104dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/registerlastname">
 
-        <RadioButton
-            android:id="@+id/radioButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/male" />
-
-        <RadioButton
-            android:id="@+id/radioButton2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/female" />
-    </RadioGroup>
 </androidx.constraintlayout.widget.ConstraintLayout>

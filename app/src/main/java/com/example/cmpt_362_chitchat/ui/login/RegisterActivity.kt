@@ -5,10 +5,7 @@ import android.accounts.AccountManager
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cmpt_362_chitchat.databinding.ActivityRegisterBinding
 import com.google.android.gms.tasks.OnCompleteListener
@@ -19,16 +16,24 @@ import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
+import com.wajahatkarim3.easyvalidation.core.view_ktx.nonEmpty
+import com.wajahatkarim3.easyvalidation.core.view_ktx.validEmail
+import com.wajahatkarim3.easyvalidation.core.view_ktx.validator
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
-    private lateinit var accountManager: AccountManager
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
-    private lateinit var name: EditText
+    private lateinit var firstname: EditText
+    private lateinit var lastname: EditText
     private lateinit var gender: RadioGroup
     private lateinit var selectedGender: RadioButton
+    private lateinit var dob: DatePicker
+    private lateinit var email: EditText
+    private lateinit var password: EditText
+    private lateinit var username: EditText
+    private lateinit var register: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,36 +43,60 @@ class RegisterActivity : AppCompatActivity() {
         auth = Firebase.auth
         database = FirebaseDatabase.getInstance().reference
 
-        val email = binding.registerEmail
-        val password = binding.registerPassword
-        val username = binding.registerUsername
-        val register = binding.registerBtn
+        email = binding.registerEmail
+        password = binding.registerPassword
+        username = binding.registerUsername
+        register = binding.registerBtn
+        dob = binding.datePicker
+
         //val firstname = binding.registerfirstname
-        name = binding.registerlastname
+        firstname = binding.registerfirstname
+        lastname = binding.registerlastname
         gender = binding.radioGroupGender
 
+
         register.setOnClickListener {
-            selectedGender = findViewById(gender.checkedRadioButtonId)
-            if (username.text.toString() != "") {
-                addAccount(this, email.text.toString(), password.text.toString(), username.text.toString(), name.text.toString(), selectedGender.text.toString())
-            } else {
-                Toast.makeText(baseContext, "Username is required.", Toast.LENGTH_SHORT).show()
+            //Validating user input
+            if (email.validator().validEmail().addErrorCallback {email.error = it}.check()
+                && password.validator().nonEmpty().minLength(5).atleastOneUpperCase().addErrorCallback { password.error = it }.check()
+                && username.validator().nonEmpty().check()
+                && firstname.validator().nonEmpty().check()
+                && lastname.validator().nonEmpty().check()
+                && gender.checkedRadioButtonId != -1) {
+                selectedGender = findViewById(gender.checkedRadioButtonId)
+                val dob_string = "${dob.month}, ${dob.dayOfMonth}, ${dob.year}"
+                println("DEBUG TEST DOB: $dob_string")
+                if (username.text.toString() != "") {
+                    //Creating account
+                    addAccount(
+                        this,
+                        email.text.toString(),
+                        password.text.toString(),
+                        username.text.toString(),
+                        firstname.text.toString(),
+                        lastname.text.toString(),
+                        selectedGender.text.toString(),
+                        dob_string
+                    )
+                } else {
+                    Toast.makeText(baseContext, "Username is required.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
     }
 
     //Adding account to database, initial information includes Email, Password, Username, Name and Gender
-    fun addAccount(context: Context, email: String, password: String, username: String, name: String, gender: String) {
+    fun addAccount(context: Context, email: String, password: String, username: String, firstname: String, lastname: String, gender: String, dob: String) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this){
             if (it.isSuccessful){
                 println("DEBUG REGISTER SUCCESS: email: $email, password: $password")
                 auth.currentUser?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(username).build())
-                addAccountToDatabase(auth.currentUser?.uid, email, username, name, gender)
+                addAccountToDatabase(auth.currentUser?.uid, email, username, firstname, lastname, gender, dob)
                 auth.currentUser?.sendEmailVerification()?.addOnSuccessListener {
-                    Toast.makeText(this@RegisterActivity, "Verification email sent to ...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RegisterActivity, "Verification email sent to $email", Toast.LENGTH_SHORT).show()
                 }?.addOnFailureListener{
-                    Toast.makeText(this@RegisterActivity, "Failed to send email verification to ..", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RegisterActivity, "Failed to send email verification to $email", Toast.LENGTH_SHORT).show()
                 }
                 auth.signOut()
                 finish()
@@ -78,7 +107,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
 
-    private fun addAccountToDatabase(userId: String?, email: String, username: String, name: String, gender: String) {
+    private fun addAccountToDatabase(userId: String?, email: String, username: String, firstname: String, lastname: String, gender: String, dob: String) {
         if (userId != null) {
             database
                 .child("Users")
@@ -93,29 +122,26 @@ class RegisterActivity : AppCompatActivity() {
             database
                 .child("Users")
                 .child(userId)
-                .child("name")
-                .setValue(name)
+                .child("firstname")
+                .setValue(firstname)
+            database
+                .child("Users")
+                .child(userId)
+                .child("lastname")
+                .setValue(lastname)
             database
                 .child("Users")
                 .child(userId)
                 .child("gender")
                 .setValue(gender)
+            database
+                .child("Users")
+                .child(userId)
+                .child("DOB")
+                .setValue(dob)
         } else {
             println("Debug: user not added to db correctly")
         }
     }
 }
 
-/*
-private fun getAccount(context: Context): Account? {
-    accountManager = AccountManager.get(context)
-    var acc: Account? = null
-    try {
-        acc = accountManager.getAccountsByType("com.login.example")[0]
-        println("DEBUG: USERNAME: ${acc.name}")
-
-    }catch (E: Throwable){
-
-    }
-    return acc
-}*/

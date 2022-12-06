@@ -25,6 +25,7 @@
     <string name="title_profile">Profile</string>
     <string name="add">Add</string>
     <string name="forgot">Forgotten your username or password?</string>
+    <string name="prompt_forgotemail">Please enter the email of the account you would like to reset ther password for</string>
     <string name="sample_message">Sample message</string>
     <string name="type_a_message">Type a message</string>
     <string name="sent_message">Sent message</string>
@@ -32,6 +33,10 @@
     <string name="delete_chatroom">Delete ChatRoom</string>
     <string name="enter_chat_room_name">Enter chat room name</string>
     <string name="video_call">Video call</string>
+    <string name="sendemail">Send</string>
+    <string name="back">Back to Login</string>
+    <string name="other">Other</string>
+    <string name="prompt_dob">Please enter your date of birth</string>
 
     <!-- friends activity related -->
     <string name="view_profile">Profile</string>
