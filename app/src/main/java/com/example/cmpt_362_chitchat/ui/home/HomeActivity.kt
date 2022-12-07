@@ -1,5 +1,6 @@
 package com.example.cmpt_362_chitchat.ui.home
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -49,7 +50,7 @@ class HomeActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        navController.navigate(intent.getIntExtra(START_NAVIGATED_TO_INTENT, R.id.navigation_private_chatrooms))
+        //navController.navigate(intent.getIntExtra(START_NAVIGATED_TO_INTENT, R.id.navigation_private_chatrooms))
     }
 
     private fun getUsername() {
